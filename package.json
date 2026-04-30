@@ -1,0 +1,6 @@
+{
+  "name": "globalanalyst",
+  "version": "1.0.0",
+  "description": "AI Automotive Intelligence powered by Claude",
+  "engines": { "node": ">=18" }
+}

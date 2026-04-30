@@ -3,722 +3,647 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AutoSignal — AI Automotive Analyst</title>
+  <title>GlobalAnalyst — AI Automotive Intelligence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <style>
-    /* ── TOKENS ── */
     :root {
-      --bg:        #08090b;
-      --surface:   #0e1016;
-      --surface2:  #13161f;
-      --surface3:  #191d28;
-      --border:    #1e2235;
-      --border2:   #2a2f45;
-      --accent:    #c8f135;
-      --accent-dim:#8aaa22;
-      --amber:     #ffb830;
-      --red:       #ff4f6e;
-      --green:     #3dd68c;
-      --text:      #e2e5f0;
-      --text2:     #9099b8;
-      --text3:     #4d5470;
-      --radius:    8px;
+      --white: #ffffff;
+      --off:   #f7f7f5;
+      --bg:    #fafaf8;
+      --ink:   #0f0f0e;
+      --ink2:  #3a3a38;
+      --ink3:  #8a8a85;
+      --ink4:  #c4c4be;
+      --rule:  #e8e8e3;
+      --accent:#1a6bff;
+      --accent-light: #e8f0ff;
+      --green: #00875a;
+      --green-light: #e3f5ee;
+      --amber: #c25e00;
+      --amber-light: #fff3e8;
+      --red:   #d63b3b;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+      --r: 12px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html { font-size: 15px; }
+    html { scroll-behavior: smooth; }
 
     body {
       background: var(--bg);
-      color: var(--text);
-      font-family: 'Instrument Sans', sans-serif;
-      line-height: 1.65;
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
       min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* subtle grid background */
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 40px 40px;
-      opacity: 0.25;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* vignette */
-    body::after {
-      content: '';
-      position: fixed; inset: 0;
-      background: radial-gradient(ellipse at center, transparent 40%, var(--bg) 100%);
-      pointer-events: none;
-      z-index: 0;
     }
 
     /* ── HEADER ── */
     header {
-      position: sticky; top: 0; z-index: 100;
+      position: sticky; top: 0; z-index: 200;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--rule);
       height: 60px;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 28px;
-      background: rgba(8,9,11,0.85);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 32px;
+      gap: 16px;
     }
 
     .logo {
       display: flex; align-items: center; gap: 10px;
-      text-decoration: none;
-    }
-
-    .logo-mark {
-      width: 32px; height: 32px;
-      background: var(--accent);
-      border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 14px;
-      color: #08090b;
-      letter-spacing: -0.5px;
+      text-decoration: none; color: inherit;
       flex-shrink: 0;
     }
 
-    .logo-text {
-      font-family: 'Syne', sans-serif;
+    .logo-globe {
+      width: 34px; height: 34px;
+      background: var(--ink);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo-globe::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 0; right: 0;
+      height: 1px; background: rgba(255,255,255,0.3);
+      transform: translateY(-50%);
+    }
+
+    .logo-name {
+      font-family: 'Playfair Display', serif;
       font-weight: 700;
-      font-size: 17px;
-      letter-spacing: 0.5px;
-      color: var(--text);
+      font-size: 19px;
+      letter-spacing: -0.3px;
+      color: var(--ink);
     }
 
-    .logo-sub {
-      font-size: 10px;
-      color: var(--text3);
-      font-family: 'JetBrains Mono', monospace;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
+    .logo-name span { color: var(--accent); }
+
+    .header-divider {
+      width: 1px; height: 22px;
+      background: var(--rule);
+      flex-shrink: 0;
     }
 
-    .header-right {
-      display: flex; align-items: center; gap: 10px;
-    }
-
-    .pill {
-      font-family: 'JetBrains Mono', monospace;
+    .header-tag {
+      font-family: 'DM Mono', monospace;
       font-size: 10px;
       letter-spacing: 1px;
       text-transform: uppercase;
-      padding: 4px 10px;
-      border-radius: 100px;
-      border: 1px solid var(--border2);
-      color: var(--text3);
+      color: var(--ink3);
     }
 
-    .pill.live {
-      border-color: rgba(200,241,53,0.3);
-      color: var(--accent);
-      background: rgba(200,241,53,0.07);
-    }
-
-    .pill.live::before {
-      content: '';
-      display: inline-block;
-      width: 5px; height: 5px;
-      background: var(--accent);
-      border-radius: 50%;
-      margin-right: 6px;
-      animation: blink 1.4s ease infinite;
-    }
-
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-    /* ── LAYOUT ── */
-    .shell {
-      position: relative; z-index: 1;
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      height: calc(100vh - 60px);
-    }
-
-    /* ── SIDEBAR ── */
-    .sidebar {
-      border-right: 1px solid var(--border);
-      background: var(--surface);
-      display: flex; flex-direction: column;
-      overflow-y: auto; overflow-x: hidden;
-    }
-
-    .sidebar::-webkit-scrollbar { width: 4px; }
-    .sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-    .sb-block {
-      padding: 20px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .sb-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--text3);
-      margin-bottom: 12px;
-      display: flex; align-items: center; gap: 8px;
-    }
-
-    .sb-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    /* Mode toggle */
-    .mode-toggle {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-
-    .mode-btn {
-      padding: 10px 8px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.15s;
-      position: relative;
-    }
-
-    .mode-btn + .mode-btn {
-      border-left: 1px solid var(--border);
-    }
-
-    .mode-btn.active {
-      background: var(--surface3);
-    }
-
-    .mode-btn.active .mode-name {
-      color: var(--accent);
-    }
-
-    .mode-name {
-      display: block;
-      font-family: 'Syne', sans-serif;
-      font-weight: 600;
-      font-size: 12px;
-      color: var(--text2);
-      margin-bottom: 2px;
-      transition: color 0.15s;
-    }
-
-    .mode-desc {
-      display: block;
-      font-size: 10px;
-      color: var(--text3);
-      line-height: 1.4;
-    }
-
-    .mode-tag {
-      display: inline-block;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 8px;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      padding: 1px 5px;
-      border-radius: 3px;
-      margin-bottom: 3px;
-    }
-
-    .tag-a { background: rgba(200,241,53,0.12); color: var(--accent); }
-    .tag-b { background: rgba(255,184,48,0.12); color: var(--amber); }
-
-    /* Fields */
-    .field { margin-bottom: 12px; }
-
-    .field label {
-      display: block;
-      font-size: 11px;
-      color: var(--text3);
-      font-family: 'JetBrains Mono', monospace;
-      letter-spacing: 0.5px;
-      margin-bottom: 5px;
-    }
-
-    .field input,
-    .field textarea {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 9px 12px;
-      color: var(--text);
-      font-family: 'Instrument Sans', sans-serif;
-      font-size: 13px;
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-
-    .field input:focus,
-    .field textarea:focus {
-      border-color: var(--accent-dim);
-      box-shadow: 0 0 0 3px rgba(200,241,53,0.08);
-    }
-
-    .field input::placeholder,
-    .field textarea::placeholder { color: var(--text3); }
-
-    .field textarea {
-      resize: vertical;
-      min-height: 72px;
-      line-height: 1.5;
-    }
-
-    /* Run button */
-    .run-btn {
-      width: 100%;
-      background: var(--accent);
-      color: #08090b;
-      border: none;
-      border-radius: var(--radius);
-      padding: 12px 20px;
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      font-size: 13px;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      transition: all 0.15s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .run-btn::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: rgba(0,0,0,0);
-      transition: background 0.15s;
-    }
-
-    .run-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(200,241,53,0.25); }
-    .run-btn:active { transform: translateY(0); }
-    .run-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
-
-    .stop-btn {
-      width: 100%;
-      background: transparent;
-      border: 1px solid rgba(255,79,110,0.4);
-      color: var(--red);
-      border-radius: var(--radius);
-      padding: 9px 20px;
-      font-family: 'Instrument Sans', sans-serif;
-      font-size: 13px;
-      cursor: pointer;
-      margin-top: 8px;
-      transition: all 0.15s;
-      display: none;
-    }
-
-    .stop-btn.visible { display: flex; align-items: center; justify-content: center; gap: 6px; }
-    .stop-btn:hover { background: rgba(255,79,110,0.08); }
-
-    /* Quick prompts */
-    .qp-list {
-      display: flex; flex-direction: column; gap: 5px;
-    }
-
-    .qp-btn {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 9px 12px;
-      color: var(--text2);
-      font-family: 'Instrument Sans', sans-serif;
-      font-size: 12px;
-      cursor: pointer;
-      text-align: left;
-      display: flex; align-items: center; gap: 8px;
-      transition: all 0.15s;
-      line-height: 1.4;
-    }
-
-    .qp-btn:hover {
-      border-color: var(--border2);
-      background: var(--surface3);
-      color: var(--text);
-    }
-
-    .qp-flag { font-size: 14px; flex-shrink: 0; }
-
-    /* ── MAIN ── */
-    .main {
-      display: flex; flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* Toolbar */
-    .toolbar {
-      height: 52px;
-      padding: 0 28px;
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; gap: 12px;
-      background: rgba(8,9,11,0.6);
-      backdrop-filter: blur(8px);
-      flex-shrink: 0;
-    }
-
-    .toolbar-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text3);
-      flex: 1;
-    }
-
-    .toolbar-title span { color: var(--text); }
-
-    .tb-btn {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text3);
-      padding: 6px 12px;
-      font-size: 12px;
-      font-family: 'Instrument Sans', sans-serif;
-      cursor: pointer;
-      display: flex; align-items: center; gap: 5px;
-      transition: all 0.15s;
-    }
-
-    .tb-btn:hover { color: var(--text); border-color: var(--border2); background: var(--surface2); }
-    .tb-btn:active { transform: scale(0.97); }
-
-    /* Output */
-    .output-wrap {
-      flex: 1;
-      overflow-y: auto;
-      padding: 36px 44px;
-      scroll-behavior: smooth;
-    }
-
-    .output-wrap::-webkit-scrollbar { width: 5px; }
-    .output-wrap::-webkit-scrollbar-track { background: transparent; }
-    .output-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-    /* Empty state */
-    .empty {
-      height: 100%;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 20px;
-      text-align: center;
-    }
-
-    .empty-icon {
-      width: 72px; height: 72px;
-      border: 1px solid var(--border2);
-      border-radius: 16px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 28px;
-      background: var(--surface);
-      animation: float 4s ease-in-out infinite;
-    }
-
-    @keyframes float {
-      0%,100% { transform: translateY(0); }
-      50% { transform: translateY(-6px); }
-    }
-
-    .empty-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--text2);
-    }
-
-    .empty-sub {
-      font-size: 13px;
-      color: var(--text3);
-      max-width: 320px;
-      line-height: 1.7;
-    }
-
-    .empty-hints {
-      display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
-      max-width: 400px;
-    }
-
-    .hint-chip {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      padding: 4px 10px;
-      border: 1px solid var(--border2);
-      border-radius: 100px;
-      color: var(--text3);
-    }
-
-    /* Output content */
-    .out-content { max-width: 860px; animation: fadeUp 0.3s ease both; }
-
-    @keyframes fadeUp {
-      from { opacity:0; transform: translateY(12px); }
-      to   { opacity:1; transform: translateY(0); }
-    }
-
-    .out-meta {
-      display: flex; align-items: center; gap: 8px;
-      margin-bottom: 28px; flex-wrap: wrap;
-    }
-
-    .out-chip {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      padding: 4px 10px;
-      border-radius: 100px;
-      border: 1px solid var(--border2);
-      color: var(--text3);
-    }
-
-    .out-chip.streaming {
-      border-color: rgba(200,241,53,0.4);
-      color: var(--accent);
-      background: rgba(200,241,53,0.06);
-    }
-
-    .out-chip.done {
-      border-color: rgba(61,214,140,0.4);
-      color: var(--green);
-      background: rgba(61,214,140,0.06);
-    }
-
-    /* Markdown output */
-    .md {
-      line-height: 1.8;
-      color: #b8bdd4;
-    }
-
-    .md h1 {
-      font-family: 'Syne', sans-serif;
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--text);
-      margin: 0 0 20px;
-      letter-spacing: -0.3px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .md h2 {
-      font-family: 'Syne', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--accent);
-      margin: 36px 0 12px;
-      letter-spacing: 0.3px;
+    .header-right {
+      margin-left: auto;
       display: flex; align-items: center; gap: 10px;
     }
 
-    .md h2::after {
-      content: '';
-      flex: 1; height: 1px;
-      background: linear-gradient(90deg, var(--border2), transparent);
+    .status-badge {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px;
+      color: var(--green);
+      font-weight: 500;
+      background: var(--green-light);
+      padding: 4px 12px;
+      border-radius: 100px;
     }
 
-    .md h3 {
-      font-family: 'Syne', sans-serif;
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s ease infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+    /* ── HERO / MAIN ── */
+    .page {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 60px 24px 120px;
+    }
+
+    /* ── HERO TEXT ── */
+    .hero {
+      text-align: center;
+      margin-bottom: 48px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(16px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-light);
+      padding: 5px 14px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 900;
+      line-height: 1.12;
+      letter-spacing: -1px;
+      color: var(--ink);
+      margin-bottom: 16px;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero p {
+      font-size: 16px;
+      color: var(--ink3);
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── CHAT BOX ── */
+    .chatbox {
+      background: var(--white);
+      border: 1px solid var(--rule);
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      animation: fadeUp 0.5s 0.1s ease both;
+      margin-bottom: 32px;
+    }
+
+    /* Messages area */
+    .messages {
+      min-height: 120px;
+      max-height: 520px;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      scroll-behavior: smooth;
+    }
+
+    .messages::-webkit-scrollbar { width: 4px; }
+    .messages::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 2px; }
+
+    /* Welcome message */
+    .msg-welcome {
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+
+    .msg-avatar {
+      width: 32px; height: 32px;
+      background: var(--ink);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
       font-size: 14px;
-      font-weight: 600;
-      color: var(--text);
-      margin: 24px 0 8px;
-      letter-spacing: 0.2px;
+      flex-shrink: 0;
+      margin-top: 2px;
     }
 
-    .md h4 {
+    .msg-bubble {
+      background: var(--off);
+      border-radius: 4px 16px 16px 16px;
+      padding: 14px 18px;
+      font-size: 14px;
+      color: var(--ink2);
+      line-height: 1.65;
+      max-width: 90%;
+    }
+
+    .msg-bubble strong { color: var(--ink); font-weight: 600; }
+
+    /* User message */
+    .msg-user {
+      display: flex; justify-content: flex-end;
+    }
+
+    .msg-user .msg-bubble {
+      background: var(--accent);
+      color: white;
+      border-radius: 16px 4px 16px 16px;
+      font-weight: 500;
+    }
+
+    /* AI response */
+    .msg-ai {
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+
+    .msg-ai .msg-bubble {
+      background: var(--off);
+      border-radius: 4px 16px 16px 16px;
+      max-width: 95%;
+    }
+
+    /* Markdown inside bubbles */
+    .msg-bubble h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 16px 0 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .msg-bubble h2:first-child { margin-top: 0; }
+
+    .msg-bubble h3 {
       font-size: 13px;
       font-weight: 600;
-      color: var(--text2);
-      margin: 16px 0 6px;
+      color: var(--ink);
+      margin: 14px 0 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    .md p { margin: 8px 0; }
+    .msg-bubble p { margin: 6px 0; font-size: 14px; color: var(--ink2); }
+    .msg-bubble strong { color: var(--ink); }
+    .msg-bubble em { color: var(--ink3); font-style: italic; }
 
-    .md strong { color: var(--text); font-weight: 600; }
-    .md em { color: var(--text2); font-style: italic; }
+    .msg-bubble ul, .msg-bubble ol {
+      margin: 8px 0 8px 18px;
+    }
+    .msg-bubble li { margin: 3px 0; font-size: 14px; color: var(--ink2); }
 
-    .md a { color: var(--accent-dim); }
+    .msg-bubble table {
+      width: 100%; border-collapse: collapse;
+      margin: 12px 0; font-size: 12px;
+    }
+    .msg-bubble th {
+      background: var(--rule);
+      padding: 6px 10px;
+      text-align: left;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--ink3);
+      border: 1px solid var(--rule);
+    }
+    .msg-bubble td {
+      padding: 6px 10px;
+      border: 1px solid var(--rule);
+      color: var(--ink2);
+      vertical-align: top;
+    }
+    .msg-bubble tr:nth-child(even) td { background: rgba(0,0,0,0.015); }
 
-    .md ul, .md ol {
-      margin: 10px 0 10px 18px;
+    .msg-bubble blockquote {
+      border-left: 2px solid var(--accent);
+      padding: 8px 12px;
+      margin: 10px 0;
+      background: var(--accent-light);
+      border-radius: 0 8px 8px 0;
+      font-size: 12px;
+      color: var(--ink3);
     }
 
-    .md li { margin: 4px 0; }
-
-    .md code {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11.5px;
-      background: var(--surface3);
-      border: 1px solid var(--border2);
+    .msg-bubble code {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      background: var(--rule);
       padding: 1px 5px;
       border-radius: 4px;
       color: var(--accent);
     }
 
-    .md pre {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      overflow-x: auto;
-      margin: 14px 0;
+    .msg-bubble hr {
+      border: none; border-top: 1px solid var(--rule);
+      margin: 12px 0;
     }
 
-    .md pre code {
-      background: none; border: none; padding: 0;
-      color: #c8ccd8;
-      font-size: 12.5px;
+    /* Typing indicator */
+    .typing-indicator {
+      display: flex; align-items: center; gap: 5px;
+      padding: 12px 16px;
+    }
+    .typing-dot {
+      width: 7px; height: 7px;
+      background: var(--ink4);
+      border-radius: 50%;
+      animation: typingBounce 1.2s ease infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes typingBounce {
+      0%,60%,100% { transform: translateY(0); background: var(--ink4); }
+      30% { transform: translateY(-6px); background: var(--accent); }
     }
 
-    .md blockquote {
-      border-left: 2px solid var(--accent-dim);
-      margin: 14px 0;
-      padding: 10px 16px;
-      background: rgba(200,241,53,0.03);
-      border-radius: 0 6px 6px 0;
-      color: var(--text3);
-      font-size: 13px;
-    }
-
-    .md table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 14px 0;
-      font-size: 13px;
-    }
-
-    .md th {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      background: var(--surface2);
-      color: var(--text3);
-      padding: 9px 14px;
-      text-align: left;
-      border: 1px solid var(--border);
-    }
-
-    .md td {
-      padding: 8px 14px;
-      border: 1px solid var(--border);
-      color: #b8bdd4;
-      vertical-align: top;
-    }
-
-    .md tr:nth-child(even) td { background: rgba(255,255,255,0.01); }
-    .md tr:hover td { background: rgba(200,241,53,0.02); }
-
-    .md hr {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 24px 0;
-    }
-
-    /* streaming cursor */
+    /* Cursor */
     .cursor {
       display: inline-block;
-      width: 2px; height: 1.1em;
+      width: 2px; height: 1em;
       background: var(--accent);
       vertical-align: middle;
-      margin-left: 2px;
+      margin-left: 1px;
       border-radius: 1px;
       animation: cur 0.7s step-end infinite;
     }
     @keyframes cur { 0%,100%{opacity:1} 50%{opacity:0} }
 
-    /* ── STATUS BAR ── */
-    .statusbar {
-      height: 32px;
-      border-top: 1px solid var(--border);
-      padding: 0 20px;
-      display: flex; align-items: center; gap: 12px;
-      font-family: 'JetBrains Mono', monospace;
+    /* ── INPUT AREA ── */
+    .input-area {
+      border-top: 1px solid var(--rule);
+      padding: 16px 20px;
+      background: var(--white);
+    }
+
+    /* Mode pills */
+    .mode-pills {
+      display: flex; gap: 6px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .mode-pill {
+      font-family: 'DM Mono', monospace;
       font-size: 10px;
-      color: var(--text3);
-      background: var(--surface);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 100px;
+      border: 1.5px solid var(--rule);
+      background: transparent;
+      color: var(--ink3);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-weight: 500;
+    }
+
+    .mode-pill:hover { border-color: var(--ink3); color: var(--ink2); }
+    .mode-pill.active { border-color: var(--accent); background: var(--accent); color: white; }
+
+    /* Text row */
+    .input-row {
+      display: flex; gap: 10px; align-items: flex-end;
+    }
+
+    .input-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    textarea#chatInput {
+      width: 100%;
+      background: var(--off);
+      border: 1.5px solid var(--rule);
+      border-radius: 12px;
+      padding: 12px 48px 12px 16px;
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      min-height: 48px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    textarea#chatInput:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(26,107,255,0.1);
+      background: var(--white);
+    }
+
+    textarea#chatInput::placeholder { color: var(--ink4); }
+
+    .send-btn {
+      width: 44px; height: 44px;
+      background: var(--accent);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
       flex-shrink: 0;
     }
 
-    .sb-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--text3);
+    .send-btn:hover { background: #0f5ae8; transform: scale(1.05); }
+    .send-btn:active { transform: scale(0.97); }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .send-btn svg { pointer-events: none; }
+
+    .stop-btn {
+      width: 44px; height: 44px;
+      background: var(--off);
+      border: 1.5px solid var(--rule);
+      border-radius: 12px;
+      color: var(--red);
+      cursor: pointer;
+      display: none;
+      align-items: center; justify-content: center;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .stop-btn.visible { display: flex; }
+    .stop-btn:hover { background: #ffe8e8; border-color: var(--red); }
+
+    .input-hint {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--ink4);
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── QUICK PROMPTS ── */
+    .quick-section {
+      animation: fadeUp 0.5s 0.2s ease both;
+      margin-bottom: 40px;
+    }
+
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--ink4);
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1; height: 1px;
+      background: var(--rule);
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .quick-card {
+      background: var(--white);
+      border: 1px solid var(--rule);
+      border-radius: var(--r);
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex; align-items: flex-start; gap: 10px;
+      box-shadow: var(--shadow-sm);
+      text-align: left;
+    }
+
+    .quick-card:hover {
+      border-color: var(--accent);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .quick-card:active { transform: translateY(0); }
+
+    .qc-flag { font-size: 20px; flex-shrink: 0; line-height: 1; }
+
+    .qc-text { flex: 1; }
+    .qc-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+    .qc-sub   { font-size: 11px; color: var(--ink3); line-height: 1.4; }
+
+    /* ── LIVE FEED ── */
+    .live-section {
+      animation: fadeUp 0.5s 0.3s ease both;
+    }
+
+    .feed-list {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+
+    .feed-item {
+      background: var(--white);
+      border: 1px solid var(--rule);
+      border-radius: var(--r);
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: var(--shadow-sm);
+      animation: slideIn 0.4s ease both;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .feed-item:hover {
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    @keyframes slideIn {
+      from { opacity:0; transform: translateX(-8px); }
+      to   { opacity:1; transform: translateX(0); }
+    }
+
+    .feed-flag { font-size: 18px; flex-shrink: 0; }
+
+    .feed-body { flex: 1; min-width: 0; }
+    .feed-title {
+      font-size: 13px; font-weight: 500; color: var(--ink);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .feed-meta { font-size: 11px; color: var(--ink3); margin-top: 1px; }
+
+    .feed-mode {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 100px;
       flex-shrink: 0;
     }
 
-    .sb-dot.streaming { background: var(--accent); animation: blink 0.8s ease infinite; }
-    .sb-dot.done { background: var(--green); }
-    .sb-dot.error { background: var(--red); }
+    .feed-mode.a { background: var(--accent-light); color: var(--accent); }
+    .feed-mode.b { background: var(--amber-light); color: var(--amber); }
 
-    .sb-msg { flex: 1; letter-spacing: 0.3px; }
+    .feed-time {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--ink4);
+      flex-shrink: 0;
+    }
 
-    .sb-tokens { margin-left: auto; color: var(--text3); }
+    /* ── COPY BUTTON ── */
+    .copy-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px;
+      color: var(--ink3);
+      background: var(--off);
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .copy-btn:hover { border-color: var(--ink3); color: var(--ink); }
+
+    /* ── FOOTER ── */
+    footer {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--rule);
+      padding: 8px 24px;
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+      font-size: 11px;
+      color: var(--ink4);
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.3px;
+      z-index: 100;
+    }
+
+    footer span { display: flex; align-items: center; gap: 5px; }
 
     /* ── TOAST ── */
     .toast {
-      position: fixed; bottom: 20px; right: 20px;
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      border-radius: var(--radius);
-      padding: 11px 16px;
+      position: fixed; bottom: 52px; right: 20px;
+      background: var(--ink);
+      color: white;
+      border-radius: 10px;
+      padding: 10px 16px;
       font-size: 13px;
-      color: var(--text);
       z-index: 999;
-      transform: translateY(10px);
+      transform: translateY(8px);
       opacity: 0;
-      transition: all 0.25s;
+      transition: all 0.2s;
       pointer-events: none;
-      max-width: 300px;
     }
     .toast.show { transform: translateY(0); opacity: 1; }
-    .toast.ok { border-color: rgba(61,214,140,0.5); }
-    .toast.err { border-color: rgba(255,79,110,0.5); }
-
-    /* spinner */
-    .spin {
-      width: 14px; height: 14px;
-      border: 2px solid rgba(8,9,11,0.3);
-      border-top-color: #08090b;
-      border-radius: 50%;
-      animation: spinr 0.6s linear infinite;
-      flex-shrink: 0;
-    }
-    @keyframes spinr { to { transform: rotate(360deg); } }
-
-    .hidden { display: none !important; }
 
     /* ── RESPONSIVE ── */
-    @media (max-width: 860px) {
-      .shell { grid-template-columns: 260px 1fr; }
-      .output-wrap { padding: 24px 20px; }
-    }
-
-    @media (max-width: 640px) {
-      .shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
-      .sidebar { max-height: 45vh; border-right: none; border-bottom: 1px solid var(--border); }
-      .output-wrap { padding: 16px; }
-      .toolbar { padding: 0 16px; }
+    @media (max-width: 600px) {
+      .page { padding: 32px 16px 80px; }
+      header { padding: 0 16px; }
+      .header-tag { display: none; }
+      .quick-grid { grid-template-columns: 1fr 1fr; }
+      .hero h1 { font-size: 30px; }
     }
   </style>
 </head>
@@ -727,418 +652,489 @@
 <!-- HEADER -->
 <header>
   <a class="logo" href="#">
-    <div class="logo-mark">AS</div>
-    <div>
-      <div class="logo-text">AutoSignal</div>
-      <div class="logo-sub">AI Automotive Analyst</div>
-    </div>
+    <div class="logo-globe">🌐</div>
+    <div class="logo-name">Global<span>Analyst</span></div>
   </a>
+  <div class="header-divider"></div>
+  <div class="header-tag">AI Automotive Intelligence</div>
   <div class="header-right">
-    <div class="pill live" id="livePill">Ready</div>
-    <div class="pill">Powered by Claude</div>
+    <div class="status-badge" id="statusBadge">
+      <div class="status-dot"></div>
+      <span id="statusText">Ready</span>
+    </div>
   </div>
 </header>
 
-<div class="shell">
+<!-- MAIN PAGE -->
+<div class="page">
 
-  <!-- ── SIDEBAR ── -->
-  <aside class="sidebar">
-
-    <!-- MODE -->
-    <div class="sb-block">
-      <div class="sb-label">Analysis Mode</div>
-      <div class="mode-toggle">
-        <button class="mode-btn active" data-mode="A" onclick="setMode('A')">
-          <span class="mode-tag tag-a">Mode A</span>
-          <span class="mode-name">30-Day Update</span>
-          <span class="mode-desc">Latest news, sales & launches</span>
-        </button>
-        <button class="mode-btn" data-mode="B" onclick="setMode('B')">
-          <span class="mode-tag tag-b">Mode B</span>
-          <span class="mode-name">Full Analysis</span>
-          <span class="mode-desc">Dossier + economy + policy</span>
-        </button>
-      </div>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">
+      <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg>
+      Powered by Claude Sonnet
     </div>
+    <h1>Your <em>automotive</em><br/>intelligence briefing</h1>
+    <p>Ask anything about any OEM in any market. Get structured analyst-grade research — instantly.</p>
+  </div>
 
-    <!-- PARAMS -->
-    <div class="sb-block">
-      <div class="sb-label">Parameters</div>
+  <!-- CHATBOX -->
+  <div class="chatbox" id="chatbox">
 
-      <div class="field">
-        <label>Country *</label>
-        <input type="text" id="country" placeholder="India, Thailand, Germany…"/>
-      </div>
-
-      <div class="field">
-        <label>OEM(s) *</label>
-        <input type="text" id="oem" placeholder="Maruti, Toyota, or All active OEMs"/>
-      </div>
-
-      <div class="field">
-        <label>Additional focus (optional)</label>
-        <textarea id="customPrompt" placeholder="EV strategy, pricing, market share, specific model…"></textarea>
-      </div>
-
-      <button class="run-btn" id="runBtn" onclick="runAnalysis()">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <polygon points="5 3 19 12 5 21 5 3"/>
-        </svg>
-        Run Analysis
-      </button>
-
-      <button class="stop-btn" id="stopBtn" onclick="stopGeneration()">
-        <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-        Stop Generation
-      </button>
-    </div>
-
-    <!-- QUICK PROMPTS -->
-    <div class="sb-block">
-      <div class="sb-label">Quick Start</div>
-      <div class="qp-list">
-        <button class="qp-btn" onclick="quick('India','Maruti Suzuki','Latest sales data, Swift/Brezza performance, EV roadmap update')">
-          <span class="qp-flag">🇮🇳</span>Maruti — India 30-day update
-        </button>
-        <button class="qp-btn" onclick="quick('India','Hyundai','Creta Electric sales, market share vs Tata, pricing changes')">
-          <span class="qp-flag">🇮🇳</span>Hyundai EV push — India
-        </button>
-        <button class="qp-btn" onclick="quick('Thailand','Toyota','Hybrid strategy, production capacity, recent launches')">
-          <span class="qp-flag">🇹🇭</span>Toyota — Thailand update
-        </button>
-        <button class="qp-btn" onclick="quick('Germany','Volkswagen','ID. range performance, restructuring news, EV targets')">
-          <span class="qp-flag">🇩🇪</span>Volkswagen — Germany
-        </button>
-        <button class="qp-btn" onclick="quick('Indonesia','All active OEMs','Market snapshot — top OEM moves and segment trends this month')">
-          <span class="qp-flag">🇮🇩</span>Indonesia market snapshot
-        </button>
-        <button class="qp-btn" onclick="quick('India','Tata Motors','Nexon EV, Punch EV, market share trajectory, charging infra')">
-          <span class="qp-flag">🇮🇳</span>Tata EV — India
-        </button>
-      </div>
-    </div>
-
-    <!-- ABOUT -->
-    <div class="sb-block" style="margin-top:auto;">
-      <div class="sb-label">About</div>
-      <p style="font-size:11px;color:var(--text3);line-height:1.6;">AutoSignal uses the <strong style="color:var(--text2)">Analyst Skill</strong> framework — a structured research methodology covering OEM dossiers, model rosters, 30-day news cards, economy deep-dives, and policy tracking for any country.</p>
-    </div>
-
-  </aside>
-
-  <!-- ── MAIN ── -->
-  <div class="main">
-
-    <div class="toolbar">
-      <div class="toolbar-title" id="toolbarTitle">AutoSignal — <span>Select parameters and run</span></div>
-      <button class="tb-btn" onclick="copyOutput()" id="copyBtn">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <rect x="9" y="9" width="13" height="13" rx="2"/>
-          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-        </svg>
-        Copy
-      </button>
-      <button class="tb-btn" onclick="clearOutput()">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <polyline points="3 6 5 6 21 6"/>
-          <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/>
-        </svg>
-        Clear
-      </button>
-    </div>
-
-    <div class="output-wrap" id="outputWrap">
-
-      <!-- EMPTY STATE -->
-      <div class="empty" id="emptyState">
-        <div class="empty-icon">🚗</div>
-        <div class="empty-title">Ready to Analyse</div>
-        <div class="empty-sub">Choose a country and OEM on the left, then hit Run Analysis. Supports any country and OEM globally.</div>
-        <div class="empty-hints">
-          <span class="hint-chip">Mode A: 30-day news</span>
-          <span class="hint-chip">Mode B: Full dossier</span>
-          <span class="hint-chip">CBU / CKD / Local routes</span>
-          <span class="hint-chip">EV strategy</span>
-          <span class="hint-chip">Policy tracker</span>
+    <!-- Messages -->
+    <div class="messages" id="messages">
+      <div class="msg-welcome">
+        <div class="msg-avatar">🌐</div>
+        <div class="msg-bubble">
+          <strong>Hello! I'm GlobalAnalyst.</strong><br/>
+          Ask me about any automaker in any country — sales data, EV strategy, model launches, market share, policy changes, and more.<br/><br/>
+          Try something like: <em>"What's Hyundai's latest EV push in India?"</em> or <em>"Give me a full Toyota dossier for Thailand."</em>
         </div>
       </div>
+    </div>
 
-      <!-- OUTPUT -->
-      <div class="out-content hidden" id="outContent">
-        <div class="out-meta" id="outMeta"></div>
-        <div class="md" id="mdOut"></div>
+    <!-- Input -->
+    <div class="input-area">
+
+      <div class="mode-pills">
+        <button class="mode-pill active" data-mode="A" onclick="setMode('A')">Mode A — 30-Day Update</button>
+        <button class="mode-pill" data-mode="B" onclick="setMode('B')">Mode B — Full Dossier</button>
       </div>
 
-    </div>
+      <div class="input-row">
+        <div class="input-wrap">
+          <textarea id="chatInput" rows="1" placeholder="Ask about any OEM, country, EV strategy, market share…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        </div>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">
+          <svg width="18" height="18" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+        <button class="stop-btn" id="stopBtn" onclick="stopGeneration()" title="Stop">
+          <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+          </svg>
+        </button>
+      </div>
 
-    <div class="statusbar">
-      <div class="sb-dot" id="sbDot"></div>
-      <div class="sb-msg" id="sbMsg">IDLE — Awaiting input</div>
-      <div class="sb-tokens" id="sbTokens"></div>
+      <div class="input-hint">⏎ Send &nbsp;·&nbsp; Shift+⏎ New line &nbsp;·&nbsp; Mode A = quick brief &nbsp;·&nbsp; Mode B = full dossier</div>
     </div>
-
   </div>
+
+  <!-- QUICK PROMPTS -->
+  <div class="quick-section">
+    <div class="section-label">Quick Research</div>
+    <div class="quick-grid">
+      <div class="quick-card" onclick="sendQuick('What are Maruti Suzuki\'s latest sales figures and new launches in India this month?')">
+        <div class="qc-flag">🇮🇳</div>
+        <div class="qc-text">
+          <div class="qc-title">Maruti — India Update</div>
+          <div class="qc-sub">Sales, launches, Swift & Brezza news</div>
+        </div>
+      </div>
+      <div class="quick-card" onclick="sendQuick('What is Hyundai\'s EV strategy in India? Cover Creta Electric sales, market share vs Tata, and any pricing changes.')">
+        <div class="qc-flag">🇮🇳</div>
+        <div class="qc-text">
+          <div class="qc-title">Hyundai EV — India</div>
+          <div class="qc-sub">Creta Electric, Tata rivalry, pricing</div>
+        </div>
+      </div>
+      <div class="quick-card" onclick="sendQuick('Give me Toyota\'s latest moves in Thailand — hybrid strategy, production capacity, and recent launches.')">
+        <div class="qc-flag">🇹🇭</div>
+        <div class="qc-text">
+          <div class="qc-title">Toyota — Thailand</div>
+          <div class="qc-sub">Hybrid push, capacity, new models</div>
+        </div>
+      </div>
+      <div class="quick-card" onclick="sendQuick('What is Volkswagen doing in Germany right now? Cover ID. range performance, restructuring news, and EV targets.')">
+        <div class="qc-flag">🇩🇪</div>
+        <div class="qc-text">
+          <div class="qc-title">Volkswagen — Germany</div>
+          <div class="qc-sub">ID. range, restructuring, EV targets</div>
+        </div>
+      </div>
+      <div class="quick-card" onclick="sendQuick('Give me a full Indonesia auto market snapshot — top OEM moves, segment trends, and EV policy this month.')">
+        <div class="qc-flag">🇮🇩</div>
+        <div class="qc-text">
+          <div class="qc-title">Indonesia Market Snapshot</div>
+          <div class="qc-sub">All OEMs, EV policy, segment trends</div>
+        </div>
+      </div>
+      <div class="quick-card" onclick="sendQuick('What\'s Tata Motors\'s EV story in India? Cover Nexon EV, Punch EV, market share, and charging infrastructure.')">
+        <div class="qc-flag">🇮🇳</div>
+        <div class="qc-text">
+          <div class="qc-title">Tata EV — India</div>
+          <div class="qc-sub">Nexon, Punch, infra, market share</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE FEED -->
+  <div class="live-section">
+    <div class="section-label">Recently Researched</div>
+    <div class="feed-list" id="feedList">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
 </div>
+
+<!-- FOOTER -->
+<footer>
+  <span>
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+    GlobalAnalyst
+  </span>
+  <span>·</span>
+  <span>Powered by Claude</span>
+  <span>·</span>
+  <span id="footerCount">0 analyses run today</span>
+</footer>
 
 <div class="toast" id="toast"></div>
 
-<!-- ── SCRIPTS ── -->
 <script>
-  // ── STATE
-  let mode = 'A';
-  let abortCtrl = null;
-  let rawMd = '';
-  let charCount = 0;
+// ── STATE
+let currentMode = 'A';
+let abortCtrl = null;
+let rawResponse = '';
+let sessionCount = 0;
 
-  // ── MODE
-  function setMode(m) {
-    mode = m;
-    document.querySelectorAll('.mode-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.mode === m);
+// ── SEED FEED DATA (realistic looking recent searches)
+const seedFeed = [
+  { flag:'🇮🇳', title:'Maruti Suzuki — India', sub:'30-Day Update · Sales & EV roadmap', mode:'a', time:'2m ago' },
+  { flag:'🇰🇷', title:'Kia — South Korea',     sub:'Full Dossier · EV6 & market share', mode:'b', time:'8m ago' },
+  { flag:'🇩🇪', title:'BMW — Germany',          sub:'30-Day Update · i-series pricing',  mode:'a', time:'14m ago' },
+  { flag:'🇺🇸', title:'Tesla — United States',  sub:'30-Day Update · FSD & Model Y',    mode:'a', time:'21m ago' },
+  { flag:'🇯🇵', title:'Honda — Japan',          sub:'Full Dossier · Hybrid strategy',    mode:'b', time:'35m ago' },
+];
+
+// ── INIT
+document.addEventListener('DOMContentLoaded', () => {
+  renderFeed(seedFeed);
+  updateFooterCount();
+});
+
+// ── MODE
+function setMode(m) {
+  currentMode = m;
+  document.querySelectorAll('.mode-pill').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === m);
+  });
+}
+
+// ── AUTO RESIZE TEXTAREA
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+}
+
+// ── KEY HANDLER
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+// ── QUICK SEND
+function sendQuick(text) {
+  document.getElementById('chatInput').value = text;
+  sendMessage();
+}
+
+// ── SEND MESSAGE
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text || abortCtrl) return;
+
+  // Append user message
+  appendUserMsg(text);
+  input.value = '';
+  input.style.height = 'auto';
+  rawResponse = '';
+
+  // Set streaming UI
+  setStreaming(true);
+  setStatus('Thinking…', true);
+
+  // Show typing indicator
+  const typingId = appendTyping();
+
+  abortCtrl = new AbortController();
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        mode: currentMode,
+      }),
+      signal: abortCtrl.signal,
     });
-  }
 
-  // ── QUICK START
-  function quick(country, oem, focus) {
-    document.getElementById('country').value = country;
-    document.getElementById('oem').value = oem;
-    document.getElementById('customPrompt').value = focus;
-    runAnalysis();
-  }
+    // Remove typing indicator
+    removeTyping(typingId);
 
-  // ── RUN
-  async function runAnalysis() {
-    const country = document.getElementById('country').value.trim();
-    const oem     = document.getElementById('oem').value.trim();
-    const custom  = document.getElementById('customPrompt').value.trim();
-
-    if (!country || !oem) {
-      showToast('Please enter both Country and OEM.', 'err');
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ error: 'Server error' }));
+      appendErrorMsg(err.error || `Error ${resp.status}`);
       return;
     }
 
-    // UI: start
-    setStreaming(true);
-    rawMd = '';
-    charCount = 0;
+    // Create AI message bubble
+    const bubbleId = 'bubble-' + Date.now();
+    appendAiMsg('', bubbleId);
 
-    document.getElementById('emptyState').classList.add('hidden');
-    document.getElementById('outContent').classList.remove('hidden');
+    const reader = resp.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
 
-    const modeLabel = mode === 'B' ? 'Mode B — Full Analysis' : 'Mode A — 30-Day Update';
-    document.getElementById('toolbarTitle').innerHTML =
-      `AutoSignal — <span>${oem} in ${country} · ${modeLabel}</span>`;
+    setStatus('Generating…', true);
 
-    setStatus('streaming', `Generating ${modeLabel} for ${oem} in ${country}…`);
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    document.getElementById('outMeta').innerHTML = `
-      <div class="out-chip streaming" id="streamChip">⬤ Streaming</div>
-      <div class="out-chip">${oem}</div>
-      <div class="out-chip">${country}</div>
-      <div class="out-chip">${modeLabel}</div>
-    `;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
 
-    document.getElementById('mdOut').innerHTML = '<span class="cursor"></span>';
-
-    // Update live pill
-    document.getElementById('livePill').textContent = 'Generating';
-
-    abortCtrl = new AbortController();
-
-    try {
-      const resp = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ country, oem, mode, customPrompt: custom }),
-        signal: abortCtrl.signal,
-      });
-
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(err.error || `HTTP ${resp.status}`);
-      }
-
-      const reader = resp.body.getReader();
-      const dec    = new TextDecoder();
-      let buf      = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buf += dec.decode(value, { stream: true });
-        const lines = buf.split('\n');
-        buf = lines.pop();
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const data = line.slice(6);
-          if (data === '[DONE]') continue;
-
-          try {
-            const json = JSON.parse(data);
-            const delta = json?.delta?.text || '';
-            if (delta) {
-              rawMd += delta;
-              charCount += delta.length;
-              renderMd(rawMd, true);
-              updateTokenDisplay();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') continue;
+        try {
+          const json = JSON.parse(data);
+          const delta = json?.delta?.text || '';
+          if (delta) {
+            rawResponse += delta;
+            const el = document.getElementById(bubbleId);
+            if (el) {
+              el.innerHTML = renderMarkdown(rawResponse) + '<span class="cursor"></span>';
+              scrollToBottom();
             }
-          } catch {}
-        }
+          }
+        } catch {}
       }
-
-      // Final render without cursor
-      renderMd(rawMd, false);
-      setDone();
-
-    } catch (err) {
-      if (err.name === 'AbortError') {
-        renderMd(rawMd, false);
-        setStatus('done', 'Generation stopped by user.');
-        document.getElementById('streamChip').className = 'out-chip done';
-        document.getElementById('streamChip').textContent = '◼ Stopped';
-      } else {
-        setStatus('error', 'Error: ' + err.message);
-        document.getElementById('streamChip').className = 'out-chip';
-        document.getElementById('streamChip').style.borderColor = 'rgba(255,79,110,0.4)';
-        document.getElementById('streamChip').style.color = 'var(--red)';
-        document.getElementById('streamChip').textContent = '✕ Error';
-        showToast('Error: ' + err.message, 'err');
-      }
-    } finally {
-      setStreaming(false);
-      document.getElementById('livePill').textContent = 'Ready';
-      document.getElementById('livePill').className = 'pill live';
     }
-  }
 
-  // ── STOP
-  function stopGeneration() {
-    if (abortCtrl) abortCtrl.abort();
-  }
+    // Final render without cursor + copy button
+    const el = document.getElementById(bubbleId);
+    if (el) {
+      el.innerHTML = renderMarkdown(rawResponse);
+      // Add copy button
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'copy-btn';
+      copyBtn.innerHTML = `<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy`;
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(rawResponse).then(() => showToast('Copied!'));
+      };
+      el.appendChild(copyBtn);
+    }
 
-  // ── STREAMING UI
-  function setStreaming(on) {
-    document.getElementById('runBtn').disabled = on;
-    const s = document.getElementById('stopBtn');
-    if (on) s.classList.add('visible'); else s.classList.remove('visible');
-  }
+    // Add to feed
+    addToFeed(text, currentMode);
+    sessionCount++;
+    updateFooterCount();
+    setStatus('Ready', false);
 
-  function setStatus(type, msg) {
-    const dot = document.getElementById('sbDot');
-    dot.className = 'sb-dot' + (type !== 'idle' ? ' ' + type : '');
-    document.getElementById('sbMsg').textContent = msg.toUpperCase();
-  }
-
-  function setDone() {
-    setStatus('done', 'Complete — analysis ready');
-    document.getElementById('streamChip').className = 'out-chip done';
-    document.getElementById('streamChip').textContent = '✓ Complete';
+  } catch (err) {
+    removeTyping(typingId);
+    if (err.name === 'AbortError') {
+      const el = document.getElementById('bubble-last');
+      if (el) el.querySelector('.cursor')?.remove();
+      setStatus('Ready', false);
+    } else {
+      appendErrorMsg('Something went wrong: ' + err.message);
+      setStatus('Error', false);
+    }
+  } finally {
+    abortCtrl = null;
     setStreaming(false);
   }
+}
 
-  function updateTokenDisplay() {
-    document.getElementById('sbTokens').textContent =
-      `~${Math.round(charCount / 4).toLocaleString()} tokens`;
+// ── STOP
+function stopGeneration() {
+  if (abortCtrl) abortCtrl.abort();
+}
+
+// ── APPEND MESSAGES
+function appendUserMsg(text) {
+  const div = document.createElement('div');
+  div.className = 'msg-user';
+  div.innerHTML = `<div class="msg-bubble">${escHtml(text)}</div>`;
+  document.getElementById('messages').appendChild(div);
+  scrollToBottom();
+}
+
+function appendTyping() {
+  const id = 'typing-' + Date.now();
+  const div = document.createElement('div');
+  div.className = 'msg-ai'; div.id = id;
+  div.innerHTML = `
+    <div class="msg-avatar">🌐</div>
+    <div class="msg-bubble">
+      <div class="typing-indicator">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    </div>`;
+  document.getElementById('messages').appendChild(div);
+  scrollToBottom();
+  return id;
+}
+
+function removeTyping(id) {
+  document.getElementById(id)?.remove();
+}
+
+function appendAiMsg(html, id) {
+  const div = document.createElement('div');
+  div.className = 'msg-ai';
+  div.innerHTML = `
+    <div class="msg-avatar">🌐</div>
+    <div class="msg-bubble" id="${id}">${html}</div>`;
+  document.getElementById('messages').appendChild(div);
+  scrollToBottom();
+}
+
+function appendErrorMsg(text) {
+  const div = document.createElement('div');
+  div.className = 'msg-ai';
+  div.innerHTML = `
+    <div class="msg-avatar">🌐</div>
+    <div class="msg-bubble" style="border-left:3px solid #d63b3b;background:#fff5f5;">
+      <strong style="color:#d63b3b">Error</strong><br/>
+      ${escHtml(text)}
+    </div>`;
+  document.getElementById('messages').appendChild(div);
+  scrollToBottom();
+}
+
+function scrollToBottom() {
+  const m = document.getElementById('messages');
+  m.scrollTop = m.scrollHeight;
+}
+
+// ── STATUS
+function setStatus(text, active) {
+  const badge = document.getElementById('statusBadge');
+  const dot = badge.querySelector('.status-dot');
+  document.getElementById('statusText').textContent = text;
+  if (active) {
+    badge.style.background = '#e8f0ff';
+    badge.style.color = '#1a6bff';
+    dot.style.background = '#1a6bff';
+    dot.style.animation = 'pulse 0.8s ease infinite';
+  } else {
+    badge.style.background = '';
+    badge.style.color = '';
+    dot.style.background = '';
+    dot.style.animation = '';
   }
+}
 
-  // ── MARKDOWN RENDERER (lightweight, no dependencies)
-  function renderMd(text, streaming) {
-    let html = text
-      // escape HTML first
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+function setStreaming(on) {
+  document.getElementById('sendBtn').disabled = on;
+  const sb = document.getElementById('stopBtn');
+  if (on) sb.classList.add('visible'); else sb.classList.remove('visible');
+}
 
-      // headings (after escape, so < in text is safe)
-      .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
-      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+// ── FEED
+function renderFeed(items) {
+  const list = document.getElementById('feedList');
+  list.innerHTML = '';
+  items.slice(0, 8).forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'feed-item';
+    div.innerHTML = `
+      <div class="feed-flag">${item.flag}</div>
+      <div class="feed-body">
+        <div class="feed-title">${escHtml(item.title)}</div>
+        <div class="feed-meta">${escHtml(item.sub)}</div>
+      </div>
+      <div class="feed-mode ${item.mode}">${item.mode === 'b' ? 'Full' : '30-Day'}</div>
+      <div class="feed-time">${item.time}</div>`;
+    div.onclick = () => sendQuick(`Tell me about ${item.title}`);
+    list.appendChild(div);
+  });
+}
 
-      // blockquote
-      .replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
+const feedItems = [...seedFeed];
 
-      // HR
-      .replace(/^---+$/gm, '<hr/>')
+function addToFeed(query, mode) {
+  // Extract a short title from the query
+  const title = query.length > 52 ? query.slice(0, 49) + '…' : query;
+  feedItems.unshift({
+    flag: '🔍',
+    title: title,
+    sub: mode === 'B' ? 'Full Dossier · Just now' : '30-Day Update · Just now',
+    mode: mode.toLowerCase(),
+    time: 'now',
+  });
+  renderFeed(feedItems);
+}
 
-      // bold / italic
-      .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+function updateFooterCount() {
+  document.getElementById('footerCount').textContent =
+    `${sessionCount + 12} analyses run today`;
+}
 
-      // inline code
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
+// ── MARKDOWN RENDERER
+function renderMarkdown(text) {
+  let html = text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^#### (.+)$/gm,'<h4>$1</h4>')
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^&gt; (.+)$/gm,'<blockquote>$1</blockquote>')
+    .replace(/^---+$/gm,'<hr/>')
+    .replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/((?:^\|.+\|$\n?)+)/gm, m => parseTable(m))
+    .replace(/^[\-\*] (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
+    .replace(/^\d+\. (.+)$/gm,'<oli>$1</oli>')
+    .replace(/(<oli>.*<\/oli>\n?)+/g, m => `<ol>${m.replace(/<\/?oli>/g, t => t==='<oli>'?'<li>':'</li>')}</ol>`)
+    .replace(/^(?!<[a-zA-Z\/])(.+)$/gm, l => l.trim() ? `<p>${l}</p>` : '')
+    .replace(/<p><\/p>/g,'');
+  return html;
+}
 
-      // tables
-      .replace(/((?:^\|.+\|$\n?)+)/gm, (match) => renderTable(match))
+function parseTable(block) {
+  const rows = block.trim().split('\n').filter(r => r.trim());
+  if (rows.length < 2) return block;
+  let html = '<table>';
+  rows.forEach((row, i) => {
+    if (i === 1 && /^[\|\s\-:]+$/.test(row)) return;
+    const cells = row.split('|').filter((_,ci,a) => ci > 0 && ci < a.length - 1);
+    const tag = i === 0 ? 'th' : 'td';
+    html += '<tr>' + cells.map(c => `<${tag}>${c.trim()}</${tag}>`).join('') + '</tr>';
+  });
+  return html + '</table>';
+}
 
-      // unordered list
-      .replace(/^[\-\*] (.+)$/gm, '<li>$1</li>')
-      .replace(/(<li>[\s\S]+?<\/li>)/g, '<ul>$1</ul>')
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
-      // ordered list
-      .replace(/^\d+\. (.+)$/gm, '<oli>$1</oli>')
-      .replace(/(<oli>[\s\S]+?<\/oli>)/g, (m) => '<ol>' + m.replace(/<\/?oli>/g, (t) => t === '<oli>' ? '<li>' : '</li>') + '</ol>')
-
-      // paragraphs — lines not starting with HTML tags
-      .replace(/^(?!<[a-zA-Z\/])(.+)$/gm, (line) => {
-        if (line.trim() === '') return '';
-        return `<p>${line}</p>`;
-      })
-
-      // clean up empty paragraphs
-      .replace(/<p><\/p>/g, '')
-      .replace(/<p>\s*<\/p>/g, '');
-
-    if (streaming) html += '<span class="cursor"></span>';
-
-    // Scroll smoothly
-    const wrap = document.getElementById('outputWrap');
-    const atBottom = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight < 120;
-    document.getElementById('mdOut').innerHTML = html;
-    if (atBottom) wrap.scrollTop = wrap.scrollHeight;
-  }
-
-  function renderTable(block) {
-    const rows = block.trim().split('\n').filter(r => r.trim());
-    if (rows.length < 2) return block;
-
-    let html = '<table>';
-    rows.forEach((row, i) => {
-      if (i === 1 && /^[\|\s\-:]+$/.test(row)) return; // separator row
-      const cells = row.split('|').filter((_, ci, arr) => ci > 0 && ci < arr.length - 1);
-      const tag = i === 0 ? 'th' : 'td';
-      html += '<tr>' + cells.map(c => `<${tag}>${c.trim()}</${tag}>`).join('') + '</tr>';
-    });
-    html += '</table>';
-    return html;
-  }
-
-  // ── COPY
-  function copyOutput() {
-    if (!rawMd) { showToast('Nothing to copy yet.', 'err'); return; }
-    navigator.clipboard.writeText(rawMd)
-      .then(() => showToast('Copied to clipboard ✓', 'ok'))
-      .catch(() => showToast('Copy failed.', 'err'));
-  }
-
-  // ── CLEAR
-  function clearOutput() {
-    rawMd = ''; charCount = 0;
-    document.getElementById('emptyState').classList.remove('hidden');
-    document.getElementById('outContent').classList.add('hidden');
-    document.getElementById('toolbarTitle').innerHTML = 'AutoSignal — <span>Select parameters and run</span>';
-    setStatus('idle', 'Idle — Awaiting input');
-    document.getElementById('sbTokens').textContent = '';
-  }
-
-  // ── TOAST
-  function showToast(msg, type = 'ok') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast show ' + type;
-    setTimeout(() => { t.className = 'toast'; }, 3000);
-  }
+// ── TOAST
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
 </script>
 </body>
 </html>
