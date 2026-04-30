@@ -930,14 +930,14 @@ async function sendMessage() {
     }
 
     const data = await resp.json();
-    const text = data.text || '';
+    const responseText = data.text || '';
 
-    if (!text) {
+    if (!responseText) {
       appendErrorMsg('Empty response from server.');
       return;
     }
 
-    rawResponse = text;
+    rawResponse = responseText;
 
     // Create AI message bubble with full response
     const bubbleId = 'bubble-' + Date.now();
