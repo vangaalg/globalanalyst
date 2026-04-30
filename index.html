@@ -6,6 +6,7 @@
   <title>GlobalAnalyst — AI Automotive Intelligence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.umd.min.js"></script>
   <style>
     :root {
       --white: #ffffff;
@@ -604,6 +605,29 @@
     }
     .copy-btn:hover { border-color: var(--ink3); color: var(--ink); }
 
+    .word-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px;
+      color: #1a5fb4;
+      background: #e8f0ff;
+      border: 1px solid #c0d4f5;
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer;
+      margin-top: 10px;
+      margin-left: 6px;
+      transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+    }
+    .word-btn:hover { background: #d0e4ff; border-color: #1a6bff; }
+    .word-btn.loading { opacity: 0.6; cursor: wait; }
+
+    .btn-row {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 0;
+      margin-top: 10px;
+    }
+
     /* ── FOOTER ── */
     footer {
       position: fixed; bottom: 0; left: 0; right: 0;
@@ -923,18 +947,35 @@ async function sendMessage() {
       }
     }
 
-    // Final render without cursor + copy button
+    // Final render without cursor + action buttons
     const el = document.getElementById(bubbleId);
     if (el) {
       el.innerHTML = renderMarkdown(rawResponse);
-      // Add copy button
+
+      const captured = rawResponse;
+      const queryTitle = text.length > 60 ? text.slice(0, 57) + '...' : text;
+
+      // Button row
+      const btnRow = document.createElement('div');
+      btnRow.className = 'btn-row';
+
+      // Copy button
       const copyBtn = document.createElement('button');
       copyBtn.className = 'copy-btn';
       copyBtn.innerHTML = `<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy`;
       copyBtn.onclick = () => {
-        navigator.clipboard.writeText(rawResponse).then(() => showToast('Copied!'));
+        navigator.clipboard.writeText(captured).then(() => showToast('Copied!'));
       };
-      el.appendChild(copyBtn);
+
+      // Word export button
+      const wordBtn = document.createElement('button');
+      wordBtn.className = 'word-btn';
+      wordBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8.5 17l1.5-5 1.5 5 1.5-5 1.5 5h1l-2-7h-1L11 15.2 9.5 10h-1l-2 7h1z"/></svg> Export Word`;
+      wordBtn.onclick = () => exportWord(captured, queryTitle, wordBtn);
+
+      btnRow.appendChild(copyBtn);
+      btnRow.appendChild(wordBtn);
+      el.appendChild(btnRow);
     }
 
     // Add to feed
@@ -1126,6 +1167,256 @@ function parseTable(block) {
 
 function escHtml(t) {
   return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── WORD EXPORT
+async function exportWord(markdown, title, btn) {
+  if (!window.docx) {
+    showToast('Word library not loaded yet, try again in a moment.');
+    return;
+  }
+
+  btn.classList.add('loading');
+  btn.textContent = 'Building…';
+
+  try {
+    const {
+      Document, Paragraph, TextRun, HeadingLevel,
+      Table, TableRow, TableCell, WidthType, BorderStyle,
+      AlignmentType, Packer, ShadingType
+    } = window.docx;
+
+    const children = [];
+
+    // Cover title
+    children.push(
+      new Paragraph({
+        text: 'GlobalAnalyst',
+        heading: HeadingLevel.TITLE,
+        spacing: { after: 120 },
+      }),
+      new Paragraph({
+        children: [new TextRun({ text: title, color: '1a6bff', size: 24 })],
+        spacing: { after: 80 },
+      }),
+      new Paragraph({
+        children: [new TextRun({
+          text: `Generated ${new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}`,
+          color: '888888', size: 20, italics: true
+        })],
+        spacing: { after: 400 },
+      })
+    );
+
+    // Parse markdown line by line
+    const lines = markdown.split('\n');
+    let i = 0;
+
+    while (i < lines.length) {
+      const line = lines[i];
+
+      // H1 / H2 / H3 / H4
+      if (line.startsWith('#### ')) {
+        children.push(new Paragraph({
+          text: line.slice(5).trim(),
+          heading: HeadingLevel.HEADING_4,
+          spacing: { before: 160, after: 60 },
+        }));
+      } else if (line.startsWith('### ')) {
+        children.push(new Paragraph({
+          text: line.slice(4).trim(),
+          heading: HeadingLevel.HEADING_3,
+          spacing: { before: 240, after: 80 },
+        }));
+      } else if (line.startsWith('## ')) {
+        children.push(new Paragraph({
+          text: line.slice(3).trim(),
+          heading: HeadingLevel.HEADING_2,
+          spacing: { before: 320, after: 120 },
+        }));
+      } else if (line.startsWith('# ')) {
+        children.push(new Paragraph({
+          text: line.slice(2).trim(),
+          heading: HeadingLevel.HEADING_1,
+          spacing: { before: 400, after: 160 },
+        }));
+
+      // Blockquote
+      } else if (line.startsWith('> ')) {
+        children.push(new Paragraph({
+          children: [new TextRun({ text: line.slice(2).trim(), italics: true, color: '555555' })],
+          indent: { left: 720 },
+          spacing: { before: 80, after: 80 },
+          border: { left: { style: BorderStyle.THICK, size: 6, color: '1a6bff' } },
+        }));
+
+      // HR
+      } else if (/^---+$/.test(line.trim())) {
+        children.push(new Paragraph({
+          text: '',
+          border: { bottom: { style: BorderStyle.SINGLE, size: 1, color: 'e8e8e3' } },
+          spacing: { before: 160, after: 160 },
+        }));
+
+      // Bullet list
+      } else if (/^[\-\*] /.test(line)) {
+        children.push(new Paragraph({
+          text: stripInline(line.slice(2).trim()),
+          bullet: { level: 0 },
+          spacing: { before: 40, after: 40 },
+        }));
+
+      // Numbered list
+      } else if (/^\d+\. /.test(line)) {
+        children.push(new Paragraph({
+          text: stripInline(line.replace(/^\d+\. /, '').trim()),
+          numbering: { reference: 'default-numbering', level: 0 },
+          spacing: { before: 40, after: 40 },
+        }));
+
+      // Table — collect all rows
+      } else if (line.startsWith('|')) {
+        const tableLines = [];
+        while (i < lines.length && lines[i].startsWith('|')) {
+          tableLines.push(lines[i]);
+          i++;
+        }
+        i--; // will be incremented at loop end
+
+        // Filter out separator rows
+        const dataRows = tableLines.filter(r => !/^\|[\s\-:]+\|/.test(r) || r.replace(/[\|\-:\s]/g,'').length > 0)
+          .filter(r => !/^[\|\s\-:]+$/.test(r));
+
+        if (dataRows.length > 0) {
+          const tableRows = dataRows.map((row, ri) => {
+            const cells = row.split('|').filter((_,ci,a) => ci > 0 && ci < a.length - 1);
+            return new TableRow({
+              children: cells.map(cell => new TableCell({
+                children: [new Paragraph({
+                  children: [new TextRun({
+                    text: stripInline(cell.trim()),
+                    bold: ri === 0,
+                    size: ri === 0 ? 18 : 18,
+                    color: ri === 0 ? '0f0f0e' : '3a3a38',
+                  })],
+                  spacing: { before: 60, after: 60 },
+                })],
+                shading: ri === 0 ? { type: ShadingType.CLEAR, fill: 'f0f4ff' } : undefined,
+                margins: { top: 80, bottom: 80, left: 120, right: 120 },
+              })),
+            });
+          });
+
+          children.push(new Table({
+            rows: tableRows,
+            width: { size: 100, type: WidthType.PERCENTAGE },
+          }));
+          children.push(new Paragraph({ text: '', spacing: { after: 160 } }));
+        }
+
+      // Empty line
+      } else if (line.trim() === '') {
+        children.push(new Paragraph({ text: '', spacing: { after: 80 } }));
+
+      // Normal paragraph
+      } else if (line.trim()) {
+        children.push(new Paragraph({
+          children: parseInline(line.trim(), TextRun),
+          spacing: { before: 60, after: 60 },
+        }));
+      }
+
+      i++;
+    }
+
+    const doc = new Document({
+      numbering: {
+        config: [{
+          reference: 'default-numbering',
+          levels: [{ level: 0, format: 'decimal', text: '%1.', alignment: AlignmentType.LEFT }],
+        }],
+      },
+      styles: {
+        default: {
+          document: { run: { font: 'Calibri', size: 22 } },
+        },
+        paragraphStyles: [
+          {
+            id: 'Heading1', name: 'Heading 1', basedOn: 'Normal',
+            run: { bold: true, size: 36, color: '0f0f0e', font: 'Calibri' },
+            paragraph: { spacing: { before: 400, after: 160 } },
+          },
+          {
+            id: 'Heading2', name: 'Heading 2', basedOn: 'Normal',
+            run: { bold: true, size: 28, color: '1a6bff', font: 'Calibri' },
+            paragraph: { spacing: { before: 320, after: 120 } },
+          },
+          {
+            id: 'Heading3', name: 'Heading 3', basedOn: 'Normal',
+            run: { bold: true, size: 24, color: '0f0f0e', font: 'Calibri' },
+            paragraph: { spacing: { before: 240, after: 80 } },
+          },
+          {
+            id: 'Title', name: 'Title', basedOn: 'Normal',
+            run: { bold: true, size: 52, color: '0f0f0e', font: 'Calibri' },
+          },
+        ],
+      },
+      sections: [{ children }],
+    });
+
+    const blob = await Packer.toBlob(doc);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const safeTitle = title.replace(/[^a-z0-9\s]/gi, '').replace(/\s+/g, '_').slice(0, 50);
+    a.href = url;
+    a.download = `GlobalAnalyst_${safeTitle}_${new Date().toISOString().slice(0,10)}.docx`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    showToast('Word document downloaded ✓');
+    btn.classList.remove('loading');
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8.5 17l1.5-5 1.5 5 1.5-5 1.5 5h1l-2-7h-1L11 15.2 9.5 10h-1l-2 7h1z"/></svg> Export Word`;
+
+  } catch (err) {
+    console.error('Word export error:', err);
+    showToast('Export failed: ' + err.message);
+    btn.classList.remove('loading');
+    btn.innerHTML = 'Export Word';
+  }
+}
+
+// Strip inline markdown to plain text for Word
+function stripInline(text) {
+  return text
+    .replace(/\*\*\*(.+?)\*\*\*/g, '$1')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+}
+
+// Parse inline markdown into TextRun array
+function parseInline(text, TextRun) {
+  const runs = [];
+  // Split on bold, italic, code patterns
+  const parts = text.split(/(\*\*\*.+?\*\*\*|\*\*.+?\*\*|\*.+?\*|`[^`]+`)/g);
+  parts.forEach(part => {
+    if (!part) return;
+    if (part.startsWith('***') && part.endsWith('***')) {
+      runs.push(new TextRun({ text: part.slice(3,-3), bold: true, italics: true }));
+    } else if (part.startsWith('**') && part.endsWith('**')) {
+      runs.push(new TextRun({ text: part.slice(2,-2), bold: true }));
+    } else if (part.startsWith('*') && part.endsWith('*')) {
+      runs.push(new TextRun({ text: part.slice(1,-1), italics: true, color: '555555' }));
+    } else if (part.startsWith('`') && part.endsWith('`')) {
+      runs.push(new TextRun({ text: part.slice(1,-1), font: 'Courier New', size: 18, color: '1a6bff' }));
+    } else {
+      const clean = part.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+      if (clean) runs.push(new TextRun({ text: clean }));
+    }
+  });
+  return runs.length ? runs : [new TextRun({ text: '' })];
 }
 
 // ── TOAST
