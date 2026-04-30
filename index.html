@@ -956,7 +956,52 @@ const feedItems = [...seedFeed];
 document.addEventListener('DOMContentLoaded', () => {
   renderFeed();
   updateFooter();
+  // Auto-send greeting after short delay so page renders first
+  setTimeout(() => autoGreet(), 600);
 });
+
+// ── AUTO GREETING
+async function autoGreet() {
+  // Hide welcome screen, show chat
+  document.getElementById('welcomeScreen').style.display = 'none';
+  const wrap = document.getElementById('messagesWrap');
+  wrap.classList.remove('hidden');
+
+  // Show user "Hi" bubble
+  appendUserTurn('Hi');
+
+  setThinking(true);
+  const typingId = appendThinking();
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Hi', mode: 'A' }),
+    });
+
+    removeThinking(typingId);
+
+    if (!resp.ok) {
+      // Fallback: show a static greeting if API fails
+      appendAiTurn(`Hello! I'm **GlobalAnalyst** — your AI automotive industry analyst.\n\nI can research any OEM in any country: sales data, EV strategy, model launches, market share, policy changes, investment moves, and more.\n\nJust ask me something like:\n- *"What's new with Maruti in India this month?"*\n- *"Give me Toyota's latest moves in Thailand"*\n- *"BYD full dossier for India"*\n\nWhat would you like to research?`, 'Hi', 'A');
+      return;
+    }
+
+    const data = await resp.json();
+    const responseText = data.text || '';
+    if (responseText) {
+      rawResponse = responseText;
+      appendAiTurn(responseText, 'Hi', 'A');
+    }
+  } catch (err) {
+    removeThinking(typingId);
+    // Show static fallback greeting
+    appendAiTurn(`Hello! I'm **GlobalAnalyst** — your AI automotive industry analyst.\n\nI can research any OEM in any country: sales data, EV strategy, model launches, market share, policy changes, and investment moves.\n\nWhat would you like to research today?`, 'Hi', 'A');
+  } finally {
+    setThinking(false);
+  }
+}
 
 // ── MODE DETECTION
 function detectMode(text) {
