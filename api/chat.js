@@ -39,7 +39,7 @@ FOR MODE B (Full Analysis) structure as:
 ## Government Policy Tracker (90-day window)
 
 ## OEM Dossier
-~800 words prose: Entry | Investment | Capacity | Products | Competitive Position | Challenges | EV Strategy | Standing | Dealers
+800 words prose: Entry | Investment | Capacity | Products | Competitive Position | Challenges | EV Strategy | Standing | Dealers
 
 ## Current Model Roster (table)
 
@@ -54,17 +54,12 @@ For casual questions respond conversationally then offer structured analysis.
 Use markdown formatting. Tables for rosters. No marketing language.`;
 
 module.exports = async function handler(req, res) {
-  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // Preflight
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
+  if (req.method === "OPTIONS") return res.status(200).end();
 
-  // Health check — visit /api/chat in browser to confirm function is alive
   if (req.method === "GET") {
     return res.status(200).json({ ok: true, service: "GlobalAnalyst API", status: "running" });
   }
@@ -73,25 +68,18 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // API key check
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({
-      error: "ANTHROPIC_API_KEY not set. Go to Vercel → Your Project → Settings → Environment Variables and add it, then redeploy.",
-    });
+    return res.status(500).json({ error: "ANTHROPIC_API_KEY not set in Vercel environment variables." });
   }
 
-  // Parse body — Vercel may or may not auto-parse JSON
   let body = req.body;
-  if (typeof body === "string") {
-    try { body = JSON.parse(body); } catch { body = {}; }
-  }
+  if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
   if (!body || typeof body !== "object") body = {};
 
   const { message, mode } = body;
-
   if (!message || !String(message).trim()) {
-    return res.status(400).json({ error: "message field is required." });
+    return res.status(400).json({ error: "message is required." });
   }
 
   const modeNote = mode === "B"
@@ -99,6 +87,7 @@ module.exports = async function handler(req, res) {
     : "\n\n[Mode A selected — focus on the last 30 days only.]";
 
   try {
+    // Use non-streaming for Vercel reliability
     const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -109,7 +98,7 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         model: "claude-sonnet-4-5",
         max_tokens: 8000,
-        stream: true,
+        stream: false,
         system: SYSTEM_PROMPT,
         messages: [{ role: "user", content: String(message).trim() + modeNote }],
       }),
@@ -122,29 +111,13 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Stream SSE straight through
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache, no-transform");
-    res.setHeader("Connection", "keep-alive");
-    res.setHeader("X-Accel-Buffering", "no");
+    const data = await anthropicRes.json();
+    const text = data.content?.[0]?.text || "";
 
-    const reader = anthropicRes.body.getReader();
-    const decoder = new TextDecoder();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      res.write(decoder.decode(value, { stream: true }));
-    }
-
-    res.end();
+    return res.status(200).json({ text });
 
   } catch (err) {
     console.error("GlobalAnalyst error:", err);
-    if (!res.headersSent) {
-      res.status(500).json({ error: "Internal server error: " + err.message });
-    } else {
-      res.end();
-    }
+    return res.status(500).json({ error: "Internal server error: " + err.message });
   }
 };
