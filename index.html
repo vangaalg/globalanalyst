@@ -6,7 +6,7 @@
   <title>GlobalAnalyst — AI Automotive Intelligence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.umd.min.js"></script>
+  <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <style>
     :root {
       --white: #ffffff;
@@ -623,6 +623,23 @@
     .word-btn:hover { background: #d0e4ff; border-color: #1a6bff; }
     .word-btn.loading { opacity: 0.6; cursor: wait; }
 
+    .pdf-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px;
+      color: #b91c1c;
+      background: #fff1f1;
+      border: 1px solid #fecaca;
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer;
+      margin-top: 10px;
+      margin-left: 6px;
+      transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+    }
+    .pdf-btn:hover { background: #ffe4e4; border-color: #b91c1c; }
+
     .btn-row {
       display: flex; align-items: center; flex-wrap: wrap; gap: 0;
       margin-top: 10px;
@@ -720,14 +737,9 @@
     <!-- Input -->
     <div class="input-area">
 
-      <div class="mode-pills">
-        <button class="mode-pill active" data-mode="A" onclick="setMode('A')">Mode A — 30-Day Update</button>
-        <button class="mode-pill" data-mode="B" onclick="setMode('B')">Mode B — Full Dossier</button>
-      </div>
-
       <div class="input-row">
         <div class="input-wrap">
-          <textarea id="chatInput" rows="1" placeholder="Ask about any OEM, country, EV strategy, market share…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <textarea id="chatInput" rows="1" placeholder="Ask about any OEM, country, EV strategy, market share… (add 'full dossier' for deep analysis)" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
         </div>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">
           <svg width="18" height="18" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
@@ -742,7 +754,7 @@
         </button>
       </div>
 
-      <div class="input-hint">⏎ Send &nbsp;·&nbsp; Shift+⏎ New line &nbsp;·&nbsp; Mode A = quick brief &nbsp;·&nbsp; Mode B = full dossier</div>
+      <div class="input-hint">⏎ Send &nbsp;·&nbsp; Shift+⏎ New line &nbsp;·&nbsp; Say "full dossier" for complete Mode B analysis</div>
     </div>
   </div>
 
@@ -821,7 +833,6 @@
 
 <script>
 // ── STATE
-let currentMode = 'A';
 let abortCtrl = null;
 let rawResponse = '';
 let sessionCount = 0;
@@ -841,12 +852,15 @@ document.addEventListener('DOMContentLoaded', () => {
   updateFooterCount();
 });
 
-// ── MODE
-function setMode(m) {
-  currentMode = m;
-  document.querySelectorAll('.mode-pill').forEach(b => {
-    b.classList.toggle('active', b.dataset.mode === m);
-  });
+// ── MODE — auto-detected from message, no UI toggle needed
+function detectMode(text) {
+  const lower = text.toLowerCase();
+  if (lower.includes('full dossier') || lower.includes('full analysis') ||
+      lower.includes('complete history') || lower.includes('full briefing') ||
+      lower.includes('mode b') || lower.includes('dossier')) {
+    return 'B';
+  }
+  return 'A';
 }
 
 // ── AUTO RESIZE TEXTAREA
@@ -875,6 +889,9 @@ async function sendMessage() {
   const text = input.value.trim();
   if (!text || abortCtrl) return;
 
+  // Auto-detect mode from message content
+  const detectedMode = detectMode(text);
+
   // Append user message
   appendUserMsg(text);
   input.value = '';
@@ -896,7 +913,7 @@ async function sendMessage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: text,
-        mode: currentMode,
+        mode: detectedMode,
       }),
       signal: abortCtrl.signal,
     });
@@ -970,16 +987,23 @@ async function sendMessage() {
       // Word export button
       const wordBtn = document.createElement('button');
       wordBtn.className = 'word-btn';
-      wordBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8.5 17l1.5-5 1.5 5 1.5-5 1.5 5h1l-2-7h-1L11 15.2 9.5 10h-1l-2 7h1z"/></svg> Export Word`;
+      wordBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8.5 17l1.5-5 1.5 5 1.5-5 1.5 5h1l-2-7h-1L11 15.2 9.5 10h-1l-2 7h1z"/></svg> Word`;
       wordBtn.onclick = () => exportWord(captured, queryTitle, wordBtn);
+
+      // PDF export button
+      const pdfBtn = document.createElement('button');
+      pdfBtn.className = 'pdf-btn';
+      pdfBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM9 13h1.5v1H9v1.5H7.5V12H9v1zm3.5 0c.28 0 .5.22.5.5v2c0 .28-.22.5-.5.5H11v-3h1.5zm2.5 0h2v1h-1v.5h1v1h-1V17H13v-4h2zM11.5 14v1H12v-1h-.5z"/></svg> PDF`;
+      pdfBtn.onclick = () => exportPdf(captured, queryTitle);
 
       btnRow.appendChild(copyBtn);
       btnRow.appendChild(wordBtn);
+      btnRow.appendChild(pdfBtn);
       el.appendChild(btnRow);
     }
 
     // Add to feed
-    addToFeed(text, currentMode);
+    addToFeed(text, detectedMode);
     sessionCount++;
     updateFooterCount();
     setStatus('Ready', false);
@@ -1171,12 +1195,23 @@ function escHtml(t) {
 
 // ── WORD EXPORT
 async function exportWord(markdown, title, btn) {
+  btn.classList.add('loading');
+  btn.textContent = 'Loading…';
+
+  // Wait up to 5s for docx library to load
+  let attempts = 0;
+  while (!window.docx && attempts < 20) {
+    await new Promise(r => setTimeout(r, 250));
+    attempts++;
+  }
+
   if (!window.docx) {
-    showToast('Word library not loaded yet, try again in a moment.');
+    showToast('Word library failed to load. Check your internet connection.');
+    btn.classList.remove('loading');
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8.5 17l1.5-5 1.5 5 1.5-5 1.5 5h1l-2-7h-1L11 15.2 9.5 10h-1l-2 7h1z"/></svg> Word`;
     return;
   }
 
-  btn.classList.add('loading');
   btn.textContent = 'Building…';
 
   try {
@@ -1376,14 +1411,105 @@ async function exportWord(markdown, title, btn) {
 
     showToast('Word document downloaded ✓');
     btn.classList.remove('loading');
-    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8.5 17l1.5-5 1.5 5 1.5-5 1.5 5h1l-2-7h-1L11 15.2 9.5 10h-1l-2 7h1z"/></svg> Export Word`;
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8.5 17l1.5-5 1.5 5 1.5-5 1.5 5h1l-2-7h-1L11 15.2 9.5 10h-1l-2 7h1z"/></svg> Word`;
 
   } catch (err) {
     console.error('Word export error:', err);
     showToast('Export failed: ' + err.message);
     btn.classList.remove('loading');
-    btn.innerHTML = 'Export Word';
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8.5 17l1.5-5 1.5 5 1.5-5 1.5 5h1l-2-7h-1L11 15.2 9.5 10h-1l-2 7h1z"/></svg> Word`;
   }
+}
+
+// ── PDF EXPORT (browser print-to-PDF)
+function exportPdf(markdown, title) {
+  const safeTitle = title.replace(/[^a-z0-9\s]/gi,'').trim().slice(0, 60) || 'GlobalAnalyst Report';
+  const date = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+
+  // Convert markdown to clean HTML for print
+  const bodyHtml = markdown
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^#### (.+)$/gm,'<h4>$1</h4>')
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,'<h1>$1</h1>')
+    .replace(/^&gt; (.+)$/gm,'<blockquote>$1</blockquote>')
+    .replace(/^---+$/gm,'<hr/>')
+    .replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/((?:^\|.+\|$\n?)+)/gm, m => {
+      const rows = m.trim().split('\n').filter(r => r.trim());
+      let t = '<table>';
+      rows.forEach((row, i) => {
+        if (/^[\|\s\-:]+$/.test(row)) return;
+        const cells = row.split('|').filter((_,ci,a) => ci>0 && ci<a.length-1);
+        const tag = i === 0 ? 'th' : 'td';
+        t += '<tr>' + cells.map(c=>`<${tag}>${c.trim()}</${tag}>`).join('') + '</tr>';
+      });
+      return t + '</table>';
+    })
+    .replace(/^[\-\*] (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, m=>`<ul>${m}</ul>`)
+    .replace(/^\d+\. (.+)$/gm,'<li>$1</li>')
+    .replace(/^(?!<[a-zA-Z\/])(.+)$/gm, l => l.trim() ? `<p>${l}</p>` : '');
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <title>${safeTitle}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; font-size: 11pt; color: #1a1a1a; line-height: 1.7; padding: 0; }
+    .cover { padding: 60px 50px 40px; border-bottom: 3px solid #1a6bff; margin-bottom: 0; }
+    .cover-brand { font-family: 'DM Mono', monospace; font-size: 9pt; letter-spacing: 3px; text-transform: uppercase; color: #888; margin-bottom: 12px; }
+    .cover-title { font-family: 'Playfair Display', serif; font-size: 22pt; font-weight: 900; color: #0f0f0e; line-height: 1.2; margin-bottom: 12px; }
+    .cover-date { font-size: 9pt; color: #888; font-family: 'DM Mono', monospace; }
+    .content { padding: 40px 50px 60px; }
+    h1 { font-family: 'Playfair Display', serif; font-size: 18pt; font-weight: 900; color: #0f0f0e; margin: 32px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #e0e0e0; }
+    h2 { font-family: 'Playfair Display', serif; font-size: 14pt; font-weight: 700; color: #1a6bff; margin: 28px 0 8px; }
+    h3 { font-size: 11pt; font-weight: 600; color: #0f0f0e; margin: 20px 0 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    h4 { font-size: 10pt; font-weight: 600; color: #444; margin: 14px 0 4px; }
+    p { margin: 6px 0; color: #333; }
+    strong { color: #0f0f0e; font-weight: 600; }
+    em { color: #555; }
+    ul, ol { margin: 8px 0 8px 20px; }
+    li { margin: 3px 0; color: #333; }
+    blockquote { border-left: 3px solid #1a6bff; padding: 8px 14px; margin: 10px 0; background: #f0f5ff; color: #555; font-size: 10pt; border-radius: 0 4px 4px 0; }
+    code { font-family: 'DM Mono', monospace; font-size: 9pt; background: #f5f5f5; padding: 1px 4px; border-radius: 3px; color: #1a6bff; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 9.5pt; page-break-inside: avoid; }
+    th { background: #f0f5ff; color: #444; padding: 7px 10px; text-align: left; font-family: 'DM Mono', monospace; font-size: 8pt; letter-spacing: 0.8px; text-transform: uppercase; border: 1px solid #d0d9f0; }
+    td { padding: 6px 10px; border: 1px solid #e8e8e3; color: #333; vertical-align: top; }
+    tr:nth-child(even) td { background: #fafafa; }
+    hr { border: none; border-top: 1px solid #e0e0e0; margin: 20px 0; }
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .cover { page-break-after: always; }
+      h2 { page-break-after: avoid; }
+      table { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cover">
+    <div class="cover-brand">GlobalAnalyst · AI Automotive Intelligence</div>
+    <div class="cover-title">${safeTitle}</div>
+    <div class="cover-date">Generated ${date}</div>
+  </div>
+  <div class="content">${bodyHtml}</div>
+  <script>
+    window.onload = function() {
+      setTimeout(function() { window.print(); }, 600);
+    };
+  </script>
+</body>
+</html>`);
+  win.document.close();
+  showToast('PDF print dialog opening…');
 }
 
 // Strip inline markdown to plain text for Word
