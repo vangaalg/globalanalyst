@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AutoSignal — AI Automotive Analyst</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── TOKENS ── */
+    :root {
+      --bg:        #08090b;
+      --surface:   #0e1016;
+      --surface2:  #13161f;
+      --surface3:  #191d28;
+      --border:    #1e2235;
+      --border2:   #2a2f45;
+      --accent:    #c8f135;
+      --accent-dim:#8aaa22;
+      --amber:     #ffb830;
+      --red:       #ff4f6e;
+      --green:     #3dd68c;
+      --text:      #e2e5f0;
+      --text2:     #9099b8;
+      --text3:     #4d5470;
+      --radius:    8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 15px; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Instrument Sans', sans-serif;
+      line-height: 1.65;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* subtle grid background */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* vignette */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 40%, var(--bg) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px;
+      background: rgba(8,9,11,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+
+    .logo-mark {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      color: #08090b;
+      letter-spacing: -0.5px;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 17px;
+      letter-spacing: 0.5px;
+      color: var(--text);
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      color: var(--text3);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .header-right {
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 100px;
+      border: 1px solid var(--border2);
+      color: var(--text3);
+    }
+
+    .pill.live {
+      border-color: rgba(200,241,53,0.3);
+      color: var(--accent);
+      background: rgba(200,241,53,0.07);
+    }
+
+    .pill.live::before {
+      content: '';
+      display: inline-block;
+      width: 5px; height: 5px;
+      background: var(--accent);
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: blink 1.4s ease infinite;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ── LAYOUT ── */
+    .shell {
+      position: relative; z-index: 1;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      height: calc(100vh - 60px);
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      border-right: 1px solid var(--border);
+      background: var(--surface);
+      display: flex; flex-direction: column;
+      overflow-y: auto; overflow-x: hidden;
+    }
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    .sb-block {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sb-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .sb-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Mode toggle */
+    .mode-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .mode-btn {
+      padding: 10px 8px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .mode-btn + .mode-btn {
+      border-left: 1px solid var(--border);
+    }
+
+    .mode-btn.active {
+      background: var(--surface3);
+    }
+
+    .mode-btn.active .mode-name {
+      color: var(--accent);
+    }
+
+    .mode-name {
+      display: block;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--text2);
+      margin-bottom: 2px;
+      transition: color 0.15s;
+    }
+
+    .mode-desc {
+      display: block;
+      font-size: 10px;
+      color: var(--text3);
+      line-height: 1.4;
+    }
+
+    .mode-tag {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-bottom: 3px;
+    }
+
+    .tag-a { background: rgba(200,241,53,0.12); color: var(--accent); }
+    .tag-b { background: rgba(255,184,48,0.12); color: var(--amber); }
+
+    /* Fields */
+    .field { margin-bottom: 12px; }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      color: var(--text3);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 9px 12px;
+      color: var(--text);
+      font-family: 'Instrument Sans', sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+      border-color: var(--accent-dim);
+      box-shadow: 0 0 0 3px rgba(200,241,53,0.08);
+    }
+
+    .field input::placeholder,
+    .field textarea::placeholder { color: var(--text3); }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 72px;
+      line-height: 1.5;
+    }
+
+    /* Run button */
+    .run-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #08090b;
+      border: none;
+      border-radius: var(--radius);
+      padding: 12px 20px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .run-btn::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0);
+      transition: background 0.15s;
+    }
+
+    .run-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(200,241,53,0.25); }
+    .run-btn:active { transform: translateY(0); }
+    .run-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .stop-btn {
+      width: 100%;
+      background: transparent;
+      border: 1px solid rgba(255,79,110,0.4);
+      color: var(--red);
+      border-radius: var(--radius);
+      padding: 9px 20px;
+      font-family: 'Instrument Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all 0.15s;
+      display: none;
+    }
+
+    .stop-btn.visible { display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .stop-btn:hover { background: rgba(255,79,110,0.08); }
+
+    /* Quick prompts */
+    .qp-list {
+      display: flex; flex-direction: column; gap: 5px;
+    }
+
+    .qp-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 9px 12px;
+      color: var(--text2);
+      font-family: 'Instrument Sans', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: left;
+      display: flex; align-items: center; gap: 8px;
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+
+    .qp-btn:hover {
+      border-color: var(--border2);
+      background: var(--surface3);
+      color: var(--text);
+    }
+
+    .qp-flag { font-size: 14px; flex-shrink: 0; }
+
+    /* ── MAIN ── */
+    .main {
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      height: 52px;
+      padding: 0 28px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(8,9,11,0.6);
+      backdrop-filter: blur(8px);
+      flex-shrink: 0;
+    }
+
+    .toolbar-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text3);
+      flex: 1;
+    }
+
+    .toolbar-title span { color: var(--text); }
+
+    .tb-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text3);
+      padding: 6px 12px;
+      font-size: 12px;
+      font-family: 'Instrument Sans', sans-serif;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 5px;
+      transition: all 0.15s;
+    }
+
+    .tb-btn:hover { color: var(--text); border-color: var(--border2); background: var(--surface2); }
+    .tb-btn:active { transform: scale(0.97); }
+
+    /* Output */
+    .output-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 36px 44px;
+      scroll-behavior: smooth;
+    }
+
+    .output-wrap::-webkit-scrollbar { width: 5px; }
+    .output-wrap::-webkit-scrollbar-track { background: transparent; }
+    .output-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* Empty state */
+    .empty {
+      height: 100%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 20px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      width: 72px; height: 72px;
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      background: var(--surface);
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .empty-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text2);
+    }
+
+    .empty-sub {
+      font-size: 13px;
+      color: var(--text3);
+      max-width: 320px;
+      line-height: 1.7;
+    }
+
+    .empty-hints {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+      max-width: 400px;
+    }
+
+    .hint-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 4px 10px;
+      border: 1px solid var(--border2);
+      border-radius: 100px;
+      color: var(--text3);
+    }
+
+    /* Output content */
+    .out-content { max-width: 860px; animation: fadeUp 0.3s ease both; }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(12px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    .out-meta {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 28px; flex-wrap: wrap;
+    }
+
+    .out-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 100px;
+      border: 1px solid var(--border2);
+      color: var(--text3);
+    }
+
+    .out-chip.streaming {
+      border-color: rgba(200,241,53,0.4);
+      color: var(--accent);
+      background: rgba(200,241,53,0.06);
+    }
+
+    .out-chip.done {
+      border-color: rgba(61,214,140,0.4);
+      color: var(--green);
+      background: rgba(61,214,140,0.06);
+    }
+
+    /* Markdown output */
+    .md {
+      line-height: 1.8;
+      color: #b8bdd4;
+    }
+
+    .md h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+      margin: 0 0 20px;
+      letter-spacing: -0.3px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .md h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 36px 0 12px;
+      letter-spacing: 0.3px;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .md h2::after {
+      content: '';
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, var(--border2), transparent);
+    }
+
+    .md h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 24px 0 8px;
+      letter-spacing: 0.2px;
+    }
+
+    .md h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text2);
+      margin: 16px 0 6px;
+    }
+
+    .md p { margin: 8px 0; }
+
+    .md strong { color: var(--text); font-weight: 600; }
+    .md em { color: var(--text2); font-style: italic; }
+
+    .md a { color: var(--accent-dim); }
+
+    .md ul, .md ol {
+      margin: 10px 0 10px 18px;
+    }
+
+    .md li { margin: 4px 0; }
+
+    .md code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      background: var(--surface3);
+      border: 1px solid var(--border2);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: var(--accent);
+    }
+
+    .md pre {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      overflow-x: auto;
+      margin: 14px 0;
+    }
+
+    .md pre code {
+      background: none; border: none; padding: 0;
+      color: #c8ccd8;
+      font-size: 12.5px;
+    }
+
+    .md blockquote {
+      border-left: 2px solid var(--accent-dim);
+      margin: 14px 0;
+      padding: 10px 16px;
+      background: rgba(200,241,53,0.03);
+      border-radius: 0 6px 6px 0;
+      color: var(--text3);
+      font-size: 13px;
+    }
+
+    .md table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 13px;
+    }
+
+    .md th {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      background: var(--surface2);
+      color: var(--text3);
+      padding: 9px 14px;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+
+    .md td {
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      color: #b8bdd4;
+      vertical-align: top;
+    }
+
+    .md tr:nth-child(even) td { background: rgba(255,255,255,0.01); }
+    .md tr:hover td { background: rgba(200,241,53,0.02); }
+
+    .md hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 24px 0;
+    }
+
+    /* streaming cursor */
+    .cursor {
+      display: inline-block;
+      width: 2px; height: 1.1em;
+      background: var(--accent);
+      vertical-align: middle;
+      margin-left: 2px;
+      border-radius: 1px;
+      animation: cur 0.7s step-end infinite;
+    }
+    @keyframes cur { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ── STATUS BAR ── */
+    .statusbar {
+      height: 32px;
+      border-top: 1px solid var(--border);
+      padding: 0 20px;
+      display: flex; align-items: center; gap: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text3);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+
+    .sb-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--text3);
+      flex-shrink: 0;
+    }
+
+    .sb-dot.streaming { background: var(--accent); animation: blink 0.8s ease infinite; }
+    .sb-dot.done { background: var(--green); }
+    .sb-dot.error { background: var(--red); }
+
+    .sb-msg { flex: 1; letter-spacing: 0.3px; }
+
+    .sb-tokens { margin-left: auto; color: var(--text3); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 20px; right: 20px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 11px 16px;
+      font-size: 13px;
+      color: var(--text);
+      z-index: 999;
+      transform: translateY(10px);
+      opacity: 0;
+      transition: all 0.25s;
+      pointer-events: none;
+      max-width: 300px;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.ok { border-color: rgba(61,214,140,0.5); }
+    .toast.err { border-color: rgba(255,79,110,0.5); }
+
+    /* spinner */
+    .spin {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(8,9,11,0.3);
+      border-top-color: #08090b;
+      border-radius: 50%;
+      animation: spinr 0.6s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spinr { to { transform: rotate(360deg); } }
+
+    .hidden { display: none !important; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 860px) {
+      .shell { grid-template-columns: 260px 1fr; }
+      .output-wrap { padding: 24px 20px; }
+    }
+
+    @media (max-width: 640px) {
+      .shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+      .sidebar { max-height: 45vh; border-right: none; border-bottom: 1px solid var(--border); }
+      .output-wrap { padding: 16px; }
+      .toolbar { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <a class="logo" href="#">
+    <div class="logo-mark">AS</div>
+    <div>
+      <div class="logo-text">AutoSignal</div>
+      <div class="logo-sub">AI Automotive Analyst</div>
+    </div>
+  </a>
+  <div class="header-right">
+    <div class="pill live" id="livePill">Ready</div>
+    <div class="pill">Powered by Claude</div>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <!-- MODE -->
+    <div class="sb-block">
+      <div class="sb-label">Analysis Mode</div>
+      <div class="mode-toggle">
+        <button class="mode-btn active" data-mode="A" onclick="setMode('A')">
+          <span class="mode-tag tag-a">Mode A</span>
+          <span class="mode-name">30-Day Update</span>
+          <span class="mode-desc">Latest news, sales & launches</span>
+        </button>
+        <button class="mode-btn" data-mode="B" onclick="setMode('B')">
+          <span class="mode-tag tag-b">Mode B</span>
+          <span class="mode-name">Full Analysis</span>
+          <span class="mode-desc">Dossier + economy + policy</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PARAMS -->
+    <div class="sb-block">
+      <div class="sb-label">Parameters</div>
+
+      <div class="field">
+        <label>Country *</label>
+        <input type="text" id="country" placeholder="India, Thailand, Germany…"/>
+      </div>
+
+      <div class="field">
+        <label>OEM(s) *</label>
+        <input type="text" id="oem" placeholder="Maruti, Toyota, or All active OEMs"/>
+      </div>
+
+      <div class="field">
+        <label>Additional focus (optional)</label>
+        <textarea id="customPrompt" placeholder="EV strategy, pricing, market share, specific model…"></textarea>
+      </div>
+
+      <button class="run-btn" id="runBtn" onclick="runAnalysis()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        Run Analysis
+      </button>
+
+      <button class="stop-btn" id="stopBtn" onclick="stopGeneration()">
+        <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+        Stop Generation
+      </button>
+    </div>
+
+    <!-- QUICK PROMPTS -->
+    <div class="sb-block">
+      <div class="sb-label">Quick Start</div>
+      <div class="qp-list">
+        <button class="qp-btn" onclick="quick('India','Maruti Suzuki','Latest sales data, Swift/Brezza performance, EV roadmap update')">
+          <span class="qp-flag">🇮🇳</span>Maruti — India 30-day update
+        </button>
+        <button class="qp-btn" onclick="quick('India','Hyundai','Creta Electric sales, market share vs Tata, pricing changes')">
+          <span class="qp-flag">🇮🇳</span>Hyundai EV push — India
+        </button>
+        <button class="qp-btn" onclick="quick('Thailand','Toyota','Hybrid strategy, production capacity, recent launches')">
+          <span class="qp-flag">🇹🇭</span>Toyota — Thailand update
+        </button>
+        <button class="qp-btn" onclick="quick('Germany','Volkswagen','ID. range performance, restructuring news, EV targets')">
+          <span class="qp-flag">🇩🇪</span>Volkswagen — Germany
+        </button>
+        <button class="qp-btn" onclick="quick('Indonesia','All active OEMs','Market snapshot — top OEM moves and segment trends this month')">
+          <span class="qp-flag">🇮🇩</span>Indonesia market snapshot
+        </button>
+        <button class="qp-btn" onclick="quick('India','Tata Motors','Nexon EV, Punch EV, market share trajectory, charging infra')">
+          <span class="qp-flag">🇮🇳</span>Tata EV — India
+        </button>
+      </div>
+    </div>
+
+    <!-- ABOUT -->
+    <div class="sb-block" style="margin-top:auto;">
+      <div class="sb-label">About</div>
+      <p style="font-size:11px;color:var(--text3);line-height:1.6;">AutoSignal uses the <strong style="color:var(--text2)">Analyst Skill</strong> framework — a structured research methodology covering OEM dossiers, model rosters, 30-day news cards, economy deep-dives, and policy tracking for any country.</p>
+    </div>
+
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+
+    <div class="toolbar">
+      <div class="toolbar-title" id="toolbarTitle">AutoSignal — <span>Select parameters and run</span></div>
+      <button class="tb-btn" onclick="copyOutput()" id="copyBtn">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="9" y="9" width="13" height="13" rx="2"/>
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+        </svg>
+        Copy
+      </button>
+      <button class="tb-btn" onclick="clearOutput()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/>
+        </svg>
+        Clear
+      </button>
+    </div>
+
+    <div class="output-wrap" id="outputWrap">
+
+      <!-- EMPTY STATE -->
+      <div class="empty" id="emptyState">
+        <div class="empty-icon">🚗</div>
+        <div class="empty-title">Ready to Analyse</div>
+        <div class="empty-sub">Choose a country and OEM on the left, then hit Run Analysis. Supports any country and OEM globally.</div>
+        <div class="empty-hints">
+          <span class="hint-chip">Mode A: 30-day news</span>
+          <span class="hint-chip">Mode B: Full dossier</span>
+          <span class="hint-chip">CBU / CKD / Local routes</span>
+          <span class="hint-chip">EV strategy</span>
+          <span class="hint-chip">Policy tracker</span>
+        </div>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="out-content hidden" id="outContent">
+        <div class="out-meta" id="outMeta"></div>
+        <div class="md" id="mdOut"></div>
+      </div>
+
+    </div>
+
+    <div class="statusbar">
+      <div class="sb-dot" id="sbDot"></div>
+      <div class="sb-msg" id="sbMsg">IDLE — Awaiting input</div>
+      <div class="sb-tokens" id="sbTokens"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ── SCRIPTS ── -->
+<script>
+  // ── STATE
+  let mode = 'A';
+  let abortCtrl = null;
+  let rawMd = '';
+  let charCount = 0;
+
+  // ── MODE
+  function setMode(m) {
+    mode = m;
+    document.querySelectorAll('.mode-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === m);
+    });
+  }
+
+  // ── QUICK START
+  function quick(country, oem, focus) {
+    document.getElementById('country').value = country;
+    document.getElementById('oem').value = oem;
+    document.getElementById('customPrompt').value = focus;
+    runAnalysis();
+  }
+
+  // ── RUN
+  async function runAnalysis() {
+    const country = document.getElementById('country').value.trim();
+    const oem     = document.getElementById('oem').value.trim();
+    const custom  = document.getElementById('customPrompt').value.trim();
+
+    if (!country || !oem) {
+      showToast('Please enter both Country and OEM.', 'err');
+      return;
+    }
+
+    // UI: start
+    setStreaming(true);
+    rawMd = '';
+    charCount = 0;
+
+    document.getElementById('emptyState').classList.add('hidden');
+    document.getElementById('outContent').classList.remove('hidden');
+
+    const modeLabel = mode === 'B' ? 'Mode B — Full Analysis' : 'Mode A — 30-Day Update';
+    document.getElementById('toolbarTitle').innerHTML =
+      `AutoSignal — <span>${oem} in ${country} · ${modeLabel}</span>`;
+
+    setStatus('streaming', `Generating ${modeLabel} for ${oem} in ${country}…`);
+
+    document.getElementById('outMeta').innerHTML = `
+      <div class="out-chip streaming" id="streamChip">⬤ Streaming</div>
+      <div class="out-chip">${oem}</div>
+      <div class="out-chip">${country}</div>
+      <div class="out-chip">${modeLabel}</div>
+    `;
+
+    document.getElementById('mdOut').innerHTML = '<span class="cursor"></span>';
+
+    // Update live pill
+    document.getElementById('livePill').textContent = 'Generating';
+
+    abortCtrl = new AbortController();
+
+    try {
+      const resp = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ country, oem, mode, customPrompt: custom }),
+        signal: abortCtrl.signal,
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(err.error || `HTTP ${resp.status}`);
+      }
+
+      const reader = resp.body.getReader();
+      const dec    = new TextDecoder();
+      let buf      = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop();
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6);
+          if (data === '[DONE]') continue;
+
+          try {
+            const json = JSON.parse(data);
+            const delta = json?.delta?.text || '';
+            if (delta) {
+              rawMd += delta;
+              charCount += delta.length;
+              renderMd(rawMd, true);
+              updateTokenDisplay();
+            }
+          } catch {}
+        }
+      }
+
+      // Final render without cursor
+      renderMd(rawMd, false);
+      setDone();
+
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        renderMd(rawMd, false);
+        setStatus('done', 'Generation stopped by user.');
+        document.getElementById('streamChip').className = 'out-chip done';
+        document.getElementById('streamChip').textContent = '◼ Stopped';
+      } else {
+        setStatus('error', 'Error: ' + err.message);
+        document.getElementById('streamChip').className = 'out-chip';
+        document.getElementById('streamChip').style.borderColor = 'rgba(255,79,110,0.4)';
+        document.getElementById('streamChip').style.color = 'var(--red)';
+        document.getElementById('streamChip').textContent = '✕ Error';
+        showToast('Error: ' + err.message, 'err');
+      }
+    } finally {
+      setStreaming(false);
+      document.getElementById('livePill').textContent = 'Ready';
+      document.getElementById('livePill').className = 'pill live';
+    }
+  }
+
+  // ── STOP
+  function stopGeneration() {
+    if (abortCtrl) abortCtrl.abort();
+  }
+
+  // ── STREAMING UI
+  function setStreaming(on) {
+    document.getElementById('runBtn').disabled = on;
+    const s = document.getElementById('stopBtn');
+    if (on) s.classList.add('visible'); else s.classList.remove('visible');
+  }
+
+  function setStatus(type, msg) {
+    const dot = document.getElementById('sbDot');
+    dot.className = 'sb-dot' + (type !== 'idle' ? ' ' + type : '');
+    document.getElementById('sbMsg').textContent = msg.toUpperCase();
+  }
+
+  function setDone() {
+    setStatus('done', 'Complete — analysis ready');
+    document.getElementById('streamChip').className = 'out-chip done';
+    document.getElementById('streamChip').textContent = '✓ Complete';
+    setStreaming(false);
+  }
+
+  function updateTokenDisplay() {
+    document.getElementById('sbTokens').textContent =
+      `~${Math.round(charCount / 4).toLocaleString()} tokens`;
+  }
+
+  // ── MARKDOWN RENDERER (lightweight, no dependencies)
+  function renderMd(text, streaming) {
+    let html = text
+      // escape HTML first
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+      // headings (after escape, so < in text is safe)
+      .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+
+      // blockquote
+      .replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
+
+      // HR
+      .replace(/^---+$/gm, '<hr/>')
+
+      // bold / italic
+      .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+
+      // inline code
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+
+      // tables
+      .replace(/((?:^\|.+\|$\n?)+)/gm, (match) => renderTable(match))
+
+      // unordered list
+      .replace(/^[\-\*] (.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>[\s\S]+?<\/li>)/g, '<ul>$1</ul>')
+
+      // ordered list
+      .replace(/^\d+\. (.+)$/gm, '<oli>$1</oli>')
+      .replace(/(<oli>[\s\S]+?<\/oli>)/g, (m) => '<ol>' + m.replace(/<\/?oli>/g, (t) => t === '<oli>' ? '<li>' : '</li>') + '</ol>')
+
+      // paragraphs — lines not starting with HTML tags
+      .replace(/^(?!<[a-zA-Z\/])(.+)$/gm, (line) => {
+        if (line.trim() === '') return '';
+        return `<p>${line}</p>`;
+      })
+
+      // clean up empty paragraphs
+      .replace(/<p><\/p>/g, '')
+      .replace(/<p>\s*<\/p>/g, '');
+
+    if (streaming) html += '<span class="cursor"></span>';
+
+    // Scroll smoothly
+    const wrap = document.getElementById('outputWrap');
+    const atBottom = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight < 120;
+    document.getElementById('mdOut').innerHTML = html;
+    if (atBottom) wrap.scrollTop = wrap.scrollHeight;
+  }
+
+  function renderTable(block) {
+    const rows = block.trim().split('\n').filter(r => r.trim());
+    if (rows.length < 2) return block;
+
+    let html = '<table>';
+    rows.forEach((row, i) => {
+      if (i === 1 && /^[\|\s\-:]+$/.test(row)) return; // separator row
+      const cells = row.split('|').filter((_, ci, arr) => ci > 0 && ci < arr.length - 1);
+      const tag = i === 0 ? 'th' : 'td';
+      html += '<tr>' + cells.map(c => `<${tag}>${c.trim()}</${tag}>`).join('') + '</tr>';
+    });
+    html += '</table>';
+    return html;
+  }
+
+  // ── COPY
+  function copyOutput() {
+    if (!rawMd) { showToast('Nothing to copy yet.', 'err'); return; }
+    navigator.clipboard.writeText(rawMd)
+      .then(() => showToast('Copied to clipboard ✓', 'ok'))
+      .catch(() => showToast('Copy failed.', 'err'));
+  }
+
+  // ── CLEAR
+  function clearOutput() {
+    rawMd = ''; charCount = 0;
+    document.getElementById('emptyState').classList.remove('hidden');
+    document.getElementById('outContent').classList.add('hidden');
+    document.getElementById('toolbarTitle').innerHTML = 'AutoSignal — <span>Select parameters and run</span>';
+    setStatus('idle', 'Idle — Awaiting input');
+    document.getElementById('sbTokens').textContent = '';
+  }
+
+  // ── TOAST
+  function showToast(msg, type = 'ok') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    setTimeout(() => { t.className = 'toast'; }, 3000);
+  }
+</script>
+</body>
+</html>
